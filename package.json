@@ -1,0 +1,27 @@
+{
+  "name": "helpdesk",
+  "type": "module",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "start": "node dist/server/entry.mjs"
+  },
+  "dependencies": {
+    "@astrojs/node": "^8.3.0",
+    "@astrojs/react": "^3.6.0",
+    "astro": "^4.15.0",
+    "cloudinary": "^2.10.0",
+    "dotenv": "^17.4.2",
+    "googleapis": "^140.0.0",
+    "nanoid": "^5.0.7",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.5",
+    "@types/react-dom": "^18.3.0",
+    "typescript": "^5.5.0"
+  }
+}
