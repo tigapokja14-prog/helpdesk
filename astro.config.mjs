@@ -1,10 +1,10 @@
-import 'dotenv/config';
 import { defineConfig } from 'astro/config';
 import react from '@astrojs/react';
-import node from '@astrojs/node';
+import vercel from '@astrojs/vercel/serverless';
+import 'dotenv/config';
 
 export default defineConfig({
   integrations: [react()],
   output: 'server',
-  adapter: node({ mode: 'standalone' }),
+  adapter: vercel(),
 });

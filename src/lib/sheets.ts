@@ -7,19 +7,23 @@ const SHEET_ID = import.meta.env.GOOGLE_SHEET_ID
 
 // ─── Inisialisasi Auth ────────────────────────────────────────
 function getAuth() {
-  const credPath = import.meta.env.GOOGLE_CREDENTIALS_PATH
-    || process.env.GOOGLE_CREDENTIALS_PATH;
+  const credsJson = process.env.GOOGLE_CREDENTIALS_JSON;
+  const credsPath = process.env.GOOGLE_CREDENTIALS_PATH;
 
-  if (!credPath) throw new Error('GOOGLE_CREDENTIALS_PATH tidak ditemukan di .env');
+  let credentials;
+  if (credsJson) {
+    credentials = JSON.parse(credsJson);
+  } else if (credsPath) {
+    credentials = JSON.parse(fs.readFileSync(credsPath, 'utf8'));
+  } else {
+    throw new Error('Google credentials tidak ditemukan');
+  }
 
-  const credentials = JSON.parse(
-    fs.readFileSync(credPath, 'utf8')
-  );
   return new google.auth.GoogleAuth({
     credentials,
     scopes: [
       'https://www.googleapis.com/auth/spreadsheets',
-      'https://www.googleapis.com/auth/drive.file',
+      'https://www.googleapis.com/auth/drive',
     ],
   });
 }
@@ -220,4 +224,101 @@ export async function uploadFileToDrive(
     fileName: res.data.name!,
     fileUrl: res.data.webViewLink!,
   };
+}
+
+// ─── Tipe Admin ───────────────────────────────────────────────
+export interface Admin {
+  username: string;
+  password: string;
+  nama: string;
+  role: string;
+}
+
+// ─── Ambil semua admin ────────────────────────────────────────
+export async function getAllAdmins(): Promise<Admin[]> {
+  const sheets = getSheets();
+  const res = await sheets.spreadsheets.values.get({
+    spreadsheetId: SHEET_ID,
+    range: 'Admin!A2:D',
+  });
+
+  const rows = res.data.values || [];
+  return rows.map(row => ({
+    username: row[0] || '',
+    password: row[1] || '',
+    nama: row[2] || '',
+    role: row[3] || 'admin',
+  }));
+}
+
+// ─── Login admin ──────────────────────────────────────────────
+export async function loginAdmin(
+  username: string,
+  password: string
+): Promise<Admin | null> {
+  const admins = await getAllAdmins();
+  const found = admins.find(
+    a => a.username === username && a.password === password
+  );
+  return found || null;
+}
+
+// ─── Tambah admin baru ────────────────────────────────────────
+export async function addAdmin(data: {
+  username: string;
+  password: string;
+  nama: string;
+  role: string;
+}): Promise<void> {
+  const sheets = getSheets();
+
+  // Cek username sudah ada atau belum
+  const existing = await getAllAdmins();
+  if (existing.find(a => a.username === data.username)) {
+    throw new Error(`Username "${data.username}" sudah digunakan`);
+  }
+
+  await sheets.spreadsheets.values.append({
+    spreadsheetId: SHEET_ID,
+    range: 'Admin!A:D',
+    valueInputOption: 'RAW',
+    requestBody: {
+      values: [[data.username, data.password, data.nama, data.role]],
+    },
+  });
+}
+
+// ─── Hapus admin ──────────────────────────────────────────────
+export async function deleteAdmin(username: string): Promise<void> {
+  const sheets = getSheets();
+
+  const res = await sheets.spreadsheets.values.get({
+    spreadsheetId: SHEET_ID,
+    range: 'Admin!A:A',
+  });
+
+  const rows = res.data.values || [];
+  const rowIndex = rows.findIndex(r => r[0] === username);
+  if (rowIndex === -1) throw new Error('Admin tidak ditemukan');
+
+  // Hapus baris menggunakan batchUpdate
+  const sheetMeta = await sheets.spreadsheets.get({ spreadsheetId: SHEET_ID });
+  const adminSheet = sheetMeta.data.sheets?.find(s => s.properties?.title === 'Admin');
+  const sheetId = adminSheet?.properties?.sheetId;
+
+  await sheets.spreadsheets.batchUpdate({
+    spreadsheetId: SHEET_ID,
+    requestBody: {
+      requests: [{
+        deleteDimension: {
+          range: {
+            sheetId,
+            dimension: 'ROWS',
+            startIndex: rowIndex,
+            endIndex: rowIndex + 1,
+          },
+        },
+      }],
+    },
+  });
 }

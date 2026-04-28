@@ -3,10 +3,10 @@ import { useState, useRef } from "react";
 const ADMIN_TOKEN = import.meta.env.PUBLIC_ADMIN_TOKEN || "";
 
 const STATUS_COLOR: Record<string, { bg: string; text: string; dot: string }> = {
-  "Menunggu":     { bg: "#FFF3CD", text: "#856404", dot: "#FFC107" },
+  "Menunggu": { bg: "#FFF3CD", text: "#856404", dot: "#FFC107" },
   "Dalam Proses": { bg: "#CCE5FF", text: "#004085", dot: "#0D6EFD" },
-  "Selesai":      { bg: "#D4EDDA", text: "#155724", dot: "#28A745" },
-  "Ditolak":      { bg: "#F8D7DA", text: "#721C24", dot: "#DC3545" },
+  "Selesai": { bg: "#D4EDDA", text: "#155724", dot: "#28A745" },
+  "Ditolak": { bg: "#F8D7DA", text: "#721C24", dot: "#DC3545" },
 };
 
 const PRIORITY_COLOR: Record<string, string> = {
@@ -121,13 +121,15 @@ export default function PublicView() {
           <div style={{ width: 36, height: 36, background: "linear-gradient(135deg, #3B82F6, #06B6D4)", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center" }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" /></svg>
           </div>
-          <span style={{ fontWeight: 700, fontSize: 20, color: "#fff" }}>HelpDesk<span style={{ color: "#38BDF8" }}>ID</span></span>
+          <span style={{ fontWeight: 700, fontSize: 20, color: "#fff" }}>BPMP JAKARTA<span style={{ color: "#38BDF8" }}> | Unit Layanan Terpadu</span></span>
         </div>
         <div style={{ display: "flex", gap: 8 }}>
           {(["kirim", "cek"] as const).map(t => (
             <button key={t} onClick={() => { setTab(t); setSubmitted(null); setTrackedTicket(null); setTrackError(""); setError(""); }}
-              style={{ padding: "8px 22px", borderRadius: 30, border: "none", cursor: "pointer", fontFamily: "'Outfit', sans-serif", fontWeight: 600, fontSize: 14,
-                background: tab === t ? "linear-gradient(135deg, #3B82F6, #06B6D4)" : "rgba(255,255,255,0.08)", color: tab === t ? "#fff" : "#94A3B8" }}>
+              style={{
+                padding: "8px 22px", borderRadius: 30, border: "none", cursor: "pointer", fontFamily: "'Outfit', sans-serif", fontWeight: 600, fontSize: 14,
+                background: tab === t ? "linear-gradient(135deg, #3B82F6, #06B6D4)" : "rgba(255,255,255,0.08)", color: tab === t ? "#fff" : "#94A3B8"
+              }}>
               {t === "kirim" ? "Kirim Tiket" : "Cek Status"}
             </button>
           ))}
