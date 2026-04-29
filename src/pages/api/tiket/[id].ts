@@ -7,7 +7,12 @@ function verifyToken(request: Request): boolean {
   const sentToken  = authHeader.startsWith('Bearer ')
     ? authHeader.slice(7).trim()
     : authHeader.trim();
-  return adminToken !== '' && sentToken === adminToken;
+  try {
+    const decoded = Buffer.from(sentToken, 'base64').toString('utf8');
+    return adminToken !== '' && decoded.includes(adminToken);
+  } catch {
+    return false;
+  }
 }
 
 export const GET: APIRoute = async ({ params }) => {
