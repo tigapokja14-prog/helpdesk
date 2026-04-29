@@ -34,7 +34,16 @@ function StatusBadge({ status }: { status: string }) {
 
 export default function PublicView() {
   const [tab, setTab] = useState<"kirim" | "cek">("kirim");
-  const [form, setForm] = useState({ name: "", email: "", subject: "", category: "Teknis", priority: "Sedang", description: "" });
+const [form, setForm] = useState({
+  name:        "",
+  email:       "",
+  peran:       "Guru/Dosen",
+  jenisLaporan:"Pertanyaan/Informasi",
+  category:    "Umum",
+  subject:     "",
+  description: "",
+  priority:    "Sedang",
+});
   const [file, setFile] = useState<File | null>(null);
   const [submitted, setSubmitted] = useState<string | null>(null);
   const [trackId, setTrackId] = useState("");
@@ -160,75 +169,110 @@ const handleSubmit = async () => {
         <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 24, padding: "40px", backdropFilter: "blur(20px)" }}>
 
           {/* ── KIRIM TIKET ── */}
-          {tab === "kirim" && !submitted && (
-            <div>
-              <h2 style={{ margin: "0 0 28px", fontSize: 22, fontWeight: 700 }}>Kirim Tiket Baru</h2>
-              {error && <div style={{ marginBottom: 16, padding: "12px 16px", borderRadius: 10, background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", color: "#FCA5A5", fontSize: 14 }}>{error}</div>}
-              <div style={{ display: "grid", gap: 16 }}>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-                  {([["name", "Nama Lengkap *", "text"], ["email", "Alamat Email *", "email"]] as const).map(([k, l, t]) => (
-                    <div key={k}>
-                      <label style={{ display: "block", fontSize: 13, color: "#94A3B8", marginBottom: 6, fontWeight: 500 }}>{l}</label>
-                      <input type={t} value={form[k]} onChange={e => setForm(f => ({ ...f, [k]: e.target.value }))} style={inputStyle} />
-                    </div>
-                  ))}
-                </div>
-                <div>
-                  <label style={{ display: "block", fontSize: 13, color: "#94A3B8", marginBottom: 6, fontWeight: 500 }}>Subjek *</label>
-                  <input value={form.subject} onChange={e => setForm(f => ({ ...f, subject: e.target.value }))} style={inputStyle} />
-                </div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-                  {([["category", "Kategori", ["Teknis", "Akun", "Billing", "Lainnya"]], ["priority", "Prioritas", ["Rendah", "Sedang", "Tinggi"]]] as const).map(([k, l, opts]) => (
-                    <div key={k}>
-                      <label style={{ display: "block", fontSize: 13, color: "#94A3B8", marginBottom: 6, fontWeight: 500 }}>{l}</label>
-                      <select value={form[k]} onChange={e => setForm(f => ({ ...f, [k]: e.target.value }))}
-                        style={{ ...inputStyle, background: "#1E293B" }}>
-                        {opts.map(o => <option key={o}>{o}</option>)}
-                      </select>
-                    </div>
-                  ))}
-                </div>
-                <div>
-                  <label style={{ display: "block", fontSize: 13, color: "#94A3B8", marginBottom: 6, fontWeight: 500 }}>Deskripsi Masalah *</label>
-                  <textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} rows={4}
-                    style={{ ...inputStyle, resize: "vertical" }} />
-                </div>
+<div style={{ display: "grid", gap: 16 }}>
 
-                {/* UPLOAD */}
-                <div>
-                  <label style={{ display: "block", fontSize: 13, color: "#94A3B8", marginBottom: 6, fontWeight: 500 }}>Lampiran (opsional)</label>
-                  <div onDragOver={e => { e.preventDefault(); setDragging(true); }} onDragLeave={() => setDragging(false)} onDrop={handleDrop}
-                    onClick={() => fileRef.current?.click()}
-                    style={{ border: `2px dashed ${dragging ? "#38BDF8" : "rgba(255,255,255,0.15)"}`, borderRadius: 12, padding: "28px 20px", textAlign: "center", cursor: "pointer", background: dragging ? "rgba(56,189,248,0.05)" : "transparent", transition: "all 0.2s" }}>
-                    <input ref={fileRef} type="file" style={{ display: "none" }} accept=".png,.jpg,.jpeg,.gif,.pdf,.doc,.docx" onChange={e => setFile(e.target.files?.[0] || null)} />
-                    {file ? (
-                      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
-                        <span style={{ fontSize: 24 }}>📎</span>
-                        <div style={{ textAlign: "left" }}>
-                          <div style={{ fontSize: 14, fontWeight: 600, color: "#38BDF8" }}>{file.name}</div>
-                          <div style={{ fontSize: 12, color: "#64748B" }}>{(file.size / 1024).toFixed(1)} KB</div>
-                        </div>
-                        <button onClick={e => { e.stopPropagation(); setFile(null); }}
-                          style={{ background: "rgba(239,68,68,0.2)", border: "none", color: "#EF4444", borderRadius: 6, padding: "4px 8px", cursor: "pointer", fontSize: 12 }}>Hapus</button>
-                      </div>
-                    ) : (
-                      <>
-                        <div style={{ fontSize: 32, marginBottom: 8 }}>☁️</div>
-                        <div style={{ fontSize: 14, color: "#94A3B8" }}>Drag & drop atau <span style={{ color: "#38BDF8" }}>klik untuk pilih</span></div>
-                        <div style={{ fontSize: 12, color: "#475569", marginTop: 4 }}>PNG, JPG, PDF, DOC — maks. 10MB</div>
-                      </>
-                    )}
-                  </div>
-                </div>
+  {/* Nama & Email */}
+  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+    <div>
+      <label style={{ display: "block", fontSize: 13, color: "#94A3B8", marginBottom: 6, fontWeight: 500 }}>Nama Lengkap *</label>
+      <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+        placeholder="Masukkan nama lengkap" style={inputStyle} />
+    </div>
+    <div>
+      <label style={{ display: "block", fontSize: 13, color: "#94A3B8", marginBottom: 6, fontWeight: 500 }}>Alamat Email *</label>
+      <input type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+        placeholder="contoh@email.com" style={inputStyle} />
+    </div>
+  </div>
 
-                <button onClick={handleSubmit} disabled={loading}
-                  style={{ padding: "14px", borderRadius: 12, border: "none", background: loading ? "#334155" : "linear-gradient(135deg, #3B82F6, #06B6D4)", color: "#fff", fontSize: 15, fontWeight: 700, cursor: loading ? "not-allowed" : "pointer", fontFamily: "'Outfit', sans-serif" }}>
-                  {loading ? "Mengirim..." : "Kirim Tiket →"}
-                </button>
-              </div>
-            </div>
-          )}
+  {/* Peran */}
+  <div>
+    <label style={{ display: "block", fontSize: 13, color: "#94A3B8", marginBottom: 6, fontWeight: 500 }}>Peran *</label>
+    <select value={form.peran} onChange={e => setForm(f => ({ ...f, peran: e.target.value }))}
+      style={{ ...inputStyle, background: "#1E293B" }}>
+      {["Guru/Dosen", "Orang Tua Murid/Wali", "Operator Sekolah", "Mahasiswa", "Murid", "Yayasan", "Pribadi", "Lainnya"].map(o => (
+        <option key={o}>{o}</option>
+      ))}
+    </select>
+  </div>
 
+  {/* Jenis Laporan & Kategori */}
+  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+    <div>
+      <label style={{ display: "block", fontSize: 13, color: "#94A3B8", marginBottom: 6, fontWeight: 500 }}>Jenis Laporan *</label>
+      <select value={form.jenisLaporan} onChange={e => setForm(f => ({ ...f, jenisLaporan: e.target.value }))}
+        style={{ ...inputStyle, background: "#1E293B" }}>
+        {["Pertanyaan/Informasi", "Permintaan", "Keluhan/Kendala", "Aspirasi/Saran", "Pengaduan"].map(o => (
+          <option key={o}>{o}</option>
+        ))}
+      </select>
+    </div>
+    <div>
+      <label style={{ display: "block", fontSize: 13, color: "#94A3B8", marginBottom: 6, fontWeight: 500 }}>Kategori *</label>
+      <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
+        style={{ ...inputStyle, background: "#1E293B" }}>
+        {["Lembaga/Fasilitas", "Pendidikan", "Umum", "Lainnya"].map(o => (
+          <option key={o}>{o}</option>
+        ))}
+      </select>
+    </div>
+  </div>
+
+  {/* Subjek */}
+  <div>
+    <label style={{ display: "block", fontSize: 13, color: "#94A3B8", marginBottom: 6, fontWeight: 500 }}>Subjek/Judul Laporan *</label>
+    <input value={form.subject} onChange={e => setForm(f => ({ ...f, subject: e.target.value }))}
+      placeholder="Tuliskan judul laporan Anda" style={inputStyle} />
+  </div>
+
+  {/* Deskripsi */}
+  <div>
+    <label style={{ display: "block", fontSize: 13, color: "#94A3B8", marginBottom: 6, fontWeight: 500 }}>Deskripsi Masalah *</label>
+    <textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+      placeholder="Jelaskan masalah atau laporan Anda secara detail..." rows={5}
+      style={{ ...inputStyle, resize: "vertical" }} />
+  </div>
+
+  {/* Upload Lampiran */}
+  <div>
+    <label style={{ display: "block", fontSize: 13, color: "#94A3B8", marginBottom: 6, fontWeight: 500 }}>Lampiran (opsional)</label>
+    <div onDragOver={e => { e.preventDefault(); setDragging(true); }}
+      onDragLeave={() => setDragging(false)}
+      onDrop={handleDrop}
+      onClick={() => fileRef.current?.click()}
+      style={{ border: `2px dashed ${dragging ? "#38BDF8" : "rgba(255,255,255,0.15)"}`, borderRadius: 12, padding: "28px 20px", textAlign: "center", cursor: "pointer", background: dragging ? "rgba(56,189,248,0.05)" : "transparent", transition: "all 0.2s" }}>
+      <input ref={fileRef} type="file" style={{ display: "none" }}
+        accept=".png,.jpg,.jpeg,.gif,.pdf,.doc,.docx"
+        onChange={e => setFile(e.target.files?.[0] || null)} />
+      {file ? (
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
+          <span style={{ fontSize: 24 }}>📎</span>
+          <div style={{ textAlign: "left" }}>
+            <div style={{ fontSize: 14, fontWeight: 600, color: "#38BDF8" }}>{file.name}</div>
+            <div style={{ fontSize: 12, color: "#64748B" }}>{(file.size / 1024).toFixed(1)} KB</div>
+          </div>
+          <button onClick={e => { e.stopPropagation(); setFile(null); }}
+            style={{ background: "rgba(239,68,68,0.2)", border: "none", color: "#EF4444", borderRadius: 6, padding: "4px 8px", cursor: "pointer", fontSize: 12 }}>
+            Hapus
+          </button>
+        </div>
+      ) : (
+        <>
+          <div style={{ fontSize: 32, marginBottom: 8 }}>☁️</div>
+          <div style={{ fontSize: 14, color: "#94A3B8" }}>Drag & drop atau <span style={{ color: "#38BDF8" }}>klik untuk pilih</span></div>
+          <div style={{ fontSize: 12, color: "#475569", marginTop: 4 }}>PNG, JPG, PDF, DOC — maks. 10MB</div>
+        </>
+      )}
+    </div>
+  </div>
+
+  {/* Tombol Kirim */}
+  <button onClick={handleSubmit} disabled={loading}
+    style={{ padding: "14px", borderRadius: 12, border: "none", background: loading ? "#334155" : "linear-gradient(135deg, #3B82F6, #06B6D4)", color: "#fff", fontSize: 15, fontWeight: 700, cursor: loading ? "not-allowed" : "pointer", fontFamily: "'Outfit', sans-serif" }}>
+    {loading ? "Mengirim..." : "Kirim Laporan →"}
+  </button>
+
+</div>
           {/* ── SUKSES ── */}
           {tab === "kirim" && submitted && (
             <div style={{ textAlign: "center", padding: "20px 0" }}>
@@ -241,7 +285,7 @@ const handleSubmit = async () => {
               </div>
               <p style={{ color: "#64748B", fontSize: 13, marginTop: 16 }}>Simpan ID ini untuk mengecek status tiket Anda.</p>
               <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 24 }}>
-                <button onClick={() => { setSubmitted(null); setForm({ name: "", email: "", subject: "", category: "Teknis", priority: "Sedang", description: "" }); setFile(null); }}
+                <button onClick={() => { setSubmitted(null); setForm({ name: "", email: "", peran: "Guru/Dosen", jenisLaporan: "Pertanyaan/Informasi", category: "Umum", subject: "", description: "", priority: "Sedang" });; setFile(null); }}
                   style={{ padding: "10px 24px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.15)", background: "transparent", color: "#E2E8F0", cursor: "pointer", fontFamily: "'Outfit', sans-serif", fontWeight: 600 }}>
                   Kirim Tiket Baru
                 </button>

@@ -22,7 +22,10 @@ export const GET: APIRoute = async () => {
 export const POST: APIRoute = async ({ request }) => {
   try {
     const body = await request.json();
-    const { name, email, subject, category, priority, description, attachment } = body;
+    const {
+      name, email, subject, description, attachment,
+      peran, jenisLaporan, category, priority,
+    } = body;
 
     if (!name || !email || !subject || !description) {
       return new Response(
@@ -31,7 +34,6 @@ export const POST: APIRoute = async ({ request }) => {
       );
     }
 
-    // Validasi format email sederhana
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return new Response(
@@ -41,13 +43,30 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     const result = await createTicket({
-      name, email, subject,
-      category:    category || 'Lainnya',
-      priority:    priority || 'Sedang',
+      name,
+      email,
+      subject,
       description,
-      attachment:  attachment || '',
+      peran:        peran        || 'Lainnya',
+      jenisLaporan: jenisLaporan || 'Pertanyaan/Informasi',
+      category:     category     || 'Umum',
+      priority:     priority     || 'Sedang',
+      attachment:   attachment   || '',
     });
 
+    return new Response(JSON.stringify(result), {
+      status: 201,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  } catch (err: any) {
+    console.error('[POST /api/tiket]', err.message);
+    return new Response(JSON.stringify({ error: 'Gagal membuat tiket', detail: err.message }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+};
+    
     return new Response(JSON.stringify(result), {
       status: 201,
       headers: { 'Content-Type': 'application/json' },

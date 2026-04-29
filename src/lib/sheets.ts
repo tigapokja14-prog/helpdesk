@@ -37,6 +37,8 @@ export interface Ticket {
   id: string;
   name: string;
   email: string;
+  peran: string;
+  jenisLaporan: string;
   subject: string;
   category: string;
   priority: string;
@@ -64,18 +66,20 @@ export async function getAllTickets(): Promise<Ticket[]> {
 
   const rows = res.data.values || [];
   return rows.map((row) => ({
-    id: row[0] || '',
-    name: row[1] || '',
-    email: row[2] || '',
-    subject: row[3] || '',
-    category: row[4] || '',
-    priority: row[5] || '',
-    status: row[6] || '',
-    description: row[7] || '',
-    attachment: row[8] || '',
-    created: row[9] || '',
-    updated: row[10] || '',
-  }));
+  id:           row[0] || '',
+  name:         row[1] || '',
+  email:        row[2] || '',
+  peran:        row[3] || '',      // ← tambah
+  jenisLaporan: row[4] || '',      // ← tambah
+  subject:      row[5] || '',      // ← geser
+  category:     row[6] || '',
+  priority:     row[7] || '',
+  status:       row[8] || '',
+  description:  row[9] || '',
+  attachment:   row[10] || '',
+  created:      row[11] || '',
+  updated:      row[12] || '',
+}));
 }
 
 // ─── Ambil tiket by ID ───────────────────────────────────────
@@ -88,25 +92,24 @@ export async function getTicketById(id: string): Promise<Ticket | null> {
 export async function createTicket(data: {
   name: string;
   email: string;
+  peran: string;
+  jenisLaporan: string;
   subject: string;
   category: string;
   priority: string;
   description: string;
   attachment?: string;
-}): Promise<{ id: string; status: string; created: string }> {
-  const sheets = getSheets();
-  const id = 'TKT-' + nanoid(6).toUpperCase();
-  const now = new Date().toISOString();
-
+}): Promise<...> {
+  ...
   await sheets.spreadsheets.values.append({
-    spreadsheetId: SHEET_ID,
-    range: 'Tiket!A:K',
-    valueInputOption: 'RAW',
+    ...
     requestBody: {
       values: [[
         id,
         data.name,
         data.email,
+        data.peran,           // ← tambah
+        data.jenisLaporan,    // ← tambah
         data.subject,
         data.category,
         data.priority,
