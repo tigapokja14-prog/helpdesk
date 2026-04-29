@@ -19,41 +19,32 @@ export const POST: APIRoute = async ({ request }) => {
 
     if (!cloudName || !apiKey || !apiSecret) {
       return new Response(JSON.stringify({
-        error:  'Konfigurasi Cloudinary tidak lengkap',
-        detail: `cloud_name=${cloudName || 'kosong'}`
+        error: 'Konfigurasi Cloudinary tidak lengkap',
       }), { status: 500, headers: { 'Content-Type': 'application/json' } });
     }
 
     cloudinary.config({ cloud_name: cloudName, api_key: apiKey, api_secret: apiSecret });
 
-    // Baca body sebagai text dulu untuk debug
     const contentType = request.headers.get('content-type') || '';
-    console.log('Content-Type:', contentType);
-
     if (!contentType.includes('multipart/form-data')) {
       return new Response(JSON.stringify({
         error: 'Content-Type harus multipart/form-data',
-        received: contentType,
       }), { status: 400, headers: { 'Content-Type': 'application/json' } });
     }
 
     const formData = await request.formData();
     const file = formData.get('file') as File | null;
 
-    console.log('File:', file?.name, file?.type, file?.size);
-
     if (!file) {
-      return new Response(JSON.stringify({ error: 'File tidak ditemukan dalam request' }), {
+      return new Response(JSON.stringify({ error: 'File tidak ditemukan' }), {
         status: 400, headers: { 'Content-Type': 'application/json' },
       });
     }
-
     if (!ALLOWED_TYPES.includes(file.type)) {
       return new Response(JSON.stringify({ error: `Tipe file tidak diizinkan: ${file.type}` }), {
         status: 400, headers: { 'Content-Type': 'application/json' },
       });
     }
-
     if (file.size > 10 * 1024 * 1024) {
       return new Response(JSON.stringify({ error: 'Ukuran file maksimal 10MB' }), {
         status: 400, headers: { 'Content-Type': 'application/json' },
@@ -70,8 +61,6 @@ export const POST: APIRoute = async ({ request }) => {
       public_id:     `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`,
     });
 
-    console.log('Upload berhasil:', result.secure_url);
-
     return new Response(JSON.stringify({
       fileName: file.name,
       fileUrl:  result.secure_url,
@@ -81,7 +70,6 @@ export const POST: APIRoute = async ({ request }) => {
     });
 
   } catch (err: any) {
-    console.error('[POST /api/upload] ERROR:', err.message);
     return new Response(JSON.stringify({
       error:  'Gagal mengupload file',
       detail: err.message,
