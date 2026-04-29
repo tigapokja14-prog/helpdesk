@@ -1,25 +1,19 @@
 import type { APIRoute } from 'astro';
 import { addReply, getTicketById } from '../../../lib/sheets';
 
+function verifyToken(request: Request): boolean {
+  const adminToken = process.env.ADMIN_SECRET_TOKEN ?? '';
+  const authHeader = request.headers.get('Authorization') ?? '';
+  const sentToken  = authHeader.startsWith('Bearer ')
+    ? authHeader.slice(7).trim()
+    : authHeader.trim();
+  return adminToken !== '' && sentToken === adminToken;
+}
+
 export const POST: APIRoute = async ({ request }) => {
   try {
-    // Baca langsung dari process.env saja
-    const adminToken = process.env.ADMIN_SECRET_TOKEN ?? '';
-    const authHeader = request.headers.get('Authorization') ?? '';
-    const sentToken = authHeader.startsWith('Bearer ')
-      ? authHeader.slice(7).trim()
-      : authHeader.trim();
-
-
-    if (!adminToken) {
-      return new Response(JSON.stringify({ error: 'ADMIN_SECRET_TOKEN belum diset di server' }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-
-    if (sentToken !== adminToken) {
-      return new Response(JSON.stringify({ error: 'Akses ditolak' }), {
+    if (!verifyToken(request)) {
+      return new Response(JSON.stringify({ error: 'Token tidak valid, akses ditolak' }), {
         status: 401,
         headers: { 'Content-Type': 'application/json' },
       });
@@ -49,7 +43,6 @@ export const POST: APIRoute = async ({ request }) => {
     });
 
   } catch (err: any) {
-    console.error('[POST /api/balasan]', err.message);
     return new Response(JSON.stringify({ error: 'Gagal mengirim balasan', detail: err.message }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
