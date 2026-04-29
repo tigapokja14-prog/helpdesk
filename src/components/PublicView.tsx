@@ -46,42 +46,51 @@ export default function PublicView() {
   const fileRef = useRef<HTMLInputElement>(null);
 
   // ─── Kirim tiket ke API ───────────────────────────────────
-  const handleSubmit = async () => {
-    setError("");
-    if (!form.name || !form.email || !form.subject || !form.description) {
-      setError("Mohon lengkapi semua field yang wajib diisi.");
-      return;
+const handleSubmit = async () => {
+  setError("");
+  if (!form.name || !form.email || !form.subject || !form.description) {
+    setError("Mohon lengkapi semua field yang wajib diisi.");
+    return;
+  }
+
+  setLoading(true);
+  try {
+    // 1. Upload file langsung ke Cloudinary dari browser
+    let fileUrl = "";
+    if (file) {
+      const fd = new FormData();
+      fd.append("file", file);
+      fd.append("upload_preset", "helpdesk_unsigned");
+      fd.append("folder", "helpdesk-lampiran");
+
+      const cloudName = "dg5h79mpx";  // ← ganti dengan cloud name Anda
+      const uploadRes = await fetch(
+        `https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`,
+        { method: "POST", body: fd }
+      );
+      const uploadData = await uploadRes.json();
+      if (!uploadRes.ok) throw new Error(uploadData.error?.message || "Gagal upload file");
+      fileUrl = uploadData.secure_url;
     }
 
-    setLoading(true);
-    try {
-      // 1. Upload file jika ada
-      let fileUrl = "";
-      if (file) {
-        const fd = new FormData();
-        fd.append("file", file);
-        const uploadRes = await fetch("/api/upload", { method: "POST", body: fd });
-        const uploadData = await uploadRes.json();
-        if (!uploadRes.ok) throw new Error(uploadData.error || "Gagal upload file");
-        fileUrl = uploadData.fileUrl;
-      }
+    // 2. Kirim data tiket ke server
+    const res = await fetch("/api/tiket", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...form, attachment: fileUrl }),
+    });
 
-      // 2. Kirim data tiket
-      const res = await fetch("/api/tiket", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, attachment: fileUrl }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Gagal mengirim tiket");
-      setSubmitted(data.id);
-    } catch (err: any) {
-      setError(err.message || "Terjadi kesalahan. Coba lagi.");
-    } finally {
-      setLoading(false);
-    }
-  };
+    const rawText = await res.text();
+    const data    = JSON.parse(rawText);
+    if (res.ok) setSubmitted(data.id);
+    else throw new Error(data.error || "Gagal mengirim tiket");
 
+  } catch (err: any) {
+    setError(err.message || "Terjadi kesalahan. Coba lagi.");
+  } finally {
+    setLoading(false);
+  }
+};
   // ─── Cek status tiket dari API ────────────────────────────
   const handleTrack = async () => {
     setTrackError("");
