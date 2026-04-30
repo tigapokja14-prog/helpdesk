@@ -1,6 +1,8 @@
+
 import { google } from 'googleapis';
 import { nanoid } from 'nanoid';
 import fs from 'fs';
+import bcrypt from 'bcryptjs';
 
 // ─── Inisialisasi Auth ────────────────────────────────────────
 function getAuth() {
@@ -217,31 +219,44 @@ export async function getAllAdmins(): Promise<Admin[]> {
 }
 
 // ─── Login admin ──────────────────────────────────────────────
+
 export async function loginAdmin(username: string, password: string): Promise<Admin | null> {
   const admins = await getAllAdmins();
-  return admins.find((a) => a.username === username && a.password === password) || null;
+  const found  = admins.find(a => a.username === username);
+  if (!found) return null;
+
+  // Cek apakah password sudah di-hash atau masih plain text
+  const isHashed = found.password.startsWith('$2');
+  const valid    = isHashed
+    ? await bcrypt.compare(password, found.password)
+    : found.password === password;  // fallback untuk password lama
+
+  return valid ? found : null;
 }
 
 // ─── Tambah admin baru ────────────────────────────────────────
 export async function addAdmin(data: {
   username: string;
   password: string;
-  nama: string;
-  role: string;
+  nama:     string;
+  role:     string;
 }): Promise<void> {
-  const sheets  = getSheets();
+  const sheets   = getSheets();
   const existing = await getAllAdmins();
 
-  if (existing.find((a) => a.username === data.username)) {
+  if (existing.find(a => a.username === data.username)) {
     throw new Error(`Username "${data.username}" sudah digunakan`);
   }
+
+  // Hash password sebelum disimpan
+  const hashedPassword = await bcrypt.hash(data.password, 12);
 
   await sheets.spreadsheets.values.append({
     spreadsheetId: SHEET_ID,
     range: 'Admin!A:D',
     valueInputOption: 'RAW',
     requestBody: {
-      values: [[data.username, data.password, data.nama, data.role]],
+      values: [[data.username, hashedPassword, data.nama, data.role]],
     },
   });
 }
@@ -277,5 +292,26 @@ export async function deleteAdmin(username: string): Promise<void> {
         },
       }],
     },
+  });
+}
+
+// ─── Hash password lama (migrasi) ────────────────────────────
+export async function hashExistingPassword(username: string): Promise<void> {
+  const sheets = getSheets();
+  const admins = await getAllAdmins();
+  const idx    = admins.findIndex(a => a.username === username);
+  if (idx === -1) throw new Error('Admin tidak ditemukan');
+
+  // Skip jika sudah di-hash
+  if (admins[idx].password.startsWith('$2')) return;
+
+  const hashed   = await bcrypt.hash(admins[idx].password, 12);
+  const sheetRow = idx + 2; // +2 karena baris 1 = header, index mulai 0
+
+  await sheets.spreadsheets.values.update({
+    spreadsheetId: SHEET_ID,
+    range: `Admin!B${sheetRow}`,
+    valueInputOption: 'RAW',
+    requestBody: { values: [[hashed]] },
   });
 }
