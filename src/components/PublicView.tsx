@@ -316,9 +316,14 @@ export default function PublicView() {
           {tab === "cek" && (
             <div>
               <h2 style={{ margin: "0 0 8px", fontSize: 22, fontWeight: 700 }}>Cek Status Tiket</h2>
-              <p style={{ color: "#94A3B8", fontSize: 14, marginBottom: 28 }}>Masukkan ID tiket yang Anda terima saat mengirim laporan.</p>
+              <p style={{ color: "#94A3B8", fontSize: 14, marginBottom: 20 }}>
+                Masukkan ID tiket yang Anda terima saat mengirim laporan.
+              </p>
+
+              {/* FORM CEK — selalu di atas */}
               <div style={{ display: "flex", gap: 10, marginBottom: 24 }}>
-                <input value={trackId} onChange={e => setTrackId(e.target.value)} placeholder="Contoh: TKT-ABC123"
+                <input value={trackId} onChange={e => setTrackId(e.target.value)}
+                  placeholder="Contoh: TKT-ABC123"
                   onKeyDown={e => e.key === "Enter" && handleTrack()}
                   style={{ ...inputStyle, flex: 1, fontSize: 15 }} />
                 <button onClick={handleTrack} disabled={loading}
@@ -327,61 +332,113 @@ export default function PublicView() {
                 </button>
               </div>
 
-              {trackError && <div style={{ padding: "14px 18px", borderRadius: 10, background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", color: "#FCA5A5", fontSize: 14 }}>{trackError}</div>}
+              {/* ERROR */}
+              {trackError && (
+                <div style={{ padding: "14px 18px", borderRadius: 10, background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", color: "#FCA5A5", fontSize: 14, marginBottom: 16 }}>
+                  ❌ {trackError}
+                </div>
+              )}
 
+              {/* HASIL CEK STATUS */}
               {trackedTicket && (
                 <div style={{ border: "1px solid rgba(56,189,248,0.2)", borderRadius: 16, overflow: "hidden" }}>
+
+                  {/* HEADER TIKET */}
                   <div style={{ background: "rgba(56,189,248,0.08)", padding: "20px 24px", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 12 }}>
                       <div>
-                        <div style={{ fontSize: 12, color: "#64748B", marginBottom: 4 }}>{trackedTicket.id}</div>
-                        <div style={{ fontSize: 18, fontWeight: 700 }}>{trackedTicket.subject}</div>
-                        <div style={{ fontSize: 13, color: "#94A3B8", marginTop: 4 }}>Dikirim {formatDate(trackedTicket.created)}</div>
+                        <div style={{ fontSize: 12, color: "#64748B", marginBottom: 4 }}>ID Tiket</div>
+                        <div style={{ fontSize: 20, fontWeight: 800, color: "#38BDF8", letterSpacing: 1 }}>{trackedTicket.id}</div>
+                        <div style={{ fontSize: 15, fontWeight: 700, color: "#E2E8F0", marginTop: 6 }}>{trackedTicket.subject}</div>
+                        <div style={{ fontSize: 12, color: "#94A3B8", marginTop: 4 }}>Dikirim {formatDate(trackedTicket.created)}</div>
                       </div>
                       <StatusBadge status={trackedTicket.status} />
                     </div>
                   </div>
+
                   <div style={{ padding: "20px 24px" }}>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12, marginBottom: 20 }}>
+
+                    {/* INFO GRID */}
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 10, marginBottom: 20 }}>
                       {[
+                        ["Nama", trackedTicket.name],
+                        ["Email", trackedTicket.email],
+                        ["Peran", trackedTicket.peran],
+                        ["Jenis", trackedTicket.jenisLaporan],
                         ["Kategori", trackedTicket.category],
                         ["Prioritas", trackedTicket.priority],
-                        ["Jenis", trackedTicket.jenisLaporan],
-                        ["Diperbarui", formatDate(trackedTicket.updated)],
                       ].map(([l, v]) => (
                         <div key={l} style={{ background: "rgba(255,255,255,0.04)", borderRadius: 8, padding: "10px 12px" }}>
                           <div style={{ fontSize: 11, color: "#64748B", fontWeight: 600, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>{l}</div>
                           <div style={{
                             fontSize: 13, fontWeight: 600,
-                            color: l === "Prioritas"
-                              ? PRIORITY_COLOR[v] ?? "#E2E8F0"
-                              : "#E2E8F0"
-                          }}>{v}</div>
+                            color: l === "Prioritas" ? (PRIORITY_COLOR[v] ?? "#E2E8F0") : "#E2E8F0",
+                            wordBreak: "break-all"
+                          }}>{v || "-"}</div>
                         </div>
                       ))}
                     </div>
+
+                    {/* DIPERBARUI */}
+                    <div style={{ fontSize: 12, color: "#64748B", marginBottom: 20 }}>
+                      Terakhir diperbarui: <span style={{ color: "#94A3B8" }}>{formatDate(trackedTicket.updated)}</span>
+                    </div>
+
+                    {/* DESKRIPSI PERTANYAAN */}
+                    <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "16px", marginBottom: 20 }}>
+                      <div style={{ fontSize: 12, color: "#64748B", fontWeight: 600, textTransform: "uppercase", letterSpacing: 1, marginBottom: 10 }}>
+                        📝 Deskripsi Laporan
+                      </div>
+                      <p style={{ margin: 0, fontSize: 14, color: "#CBD5E1", lineHeight: 1.7 }}>
+                        {trackedTicket.description}
+                      </p>
+                    </div>
+
+                    {/* LAMPIRAN */}
+                    {trackedTicket.attachment && (
+                      <a href={trackedTicket.attachment} target="_blank" rel="noopener noreferrer"
+                        style={{ display: "flex", alignItems: "center", gap: 10, background: "rgba(56,189,248,0.08)", border: "1px solid rgba(56,189,248,0.2)", borderRadius: 10, padding: "12px 16px", marginBottom: 20, textDecoration: "none" }}>
+                        <span style={{ fontSize: 20 }}>📎</span>
+                        <div>
+                          <div style={{ fontSize: 13, fontWeight: 600, color: "#38BDF8" }}>Lihat Lampiran</div>
+                          <div style={{ fontSize: 11, color: "#64748B" }}>Klik untuk membuka file</div>
+                        </div>
+                      </a>
+                    )}
+
+                    {/* BALASAN ADMIN */}
                     {trackedTicket.replies?.length > 0 ? (
                       <div>
-                        <div style={{ fontSize: 13, fontWeight: 600, color: "#94A3B8", marginBottom: 10 }}>Balasan Admin</div>
-                        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: "#94A3B8", marginBottom: 12 }}>
+                          💬 Balasan Tim ({trackedTicket.replies.length})
+                        </div>
+                        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                           {trackedTicket.replies.map((r: any, i: number) => (
-                            <div key={i} style={{ background: "rgba(59,130,246,0.08)", border: "1px solid rgba(59,130,246,0.2)", borderRadius: 10, padding: "12px 16px" }}>
-                              <div style={{ fontSize: 12, color: "#38BDF8", fontWeight: 600, marginBottom: 4 }}>{r.from} · {formatDate(r.time)}</div>
-                              <div style={{ fontSize: 14 }}>{r.text}</div>
+                            <div key={i} style={{ background: "rgba(59,130,246,0.08)", border: "1px solid rgba(59,130,246,0.2)", borderRadius: 10, padding: "14px 16px" }}>
+                              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, flexWrap: "wrap", gap: 6 }}>
+                                <div style={{ fontSize: 13, color: "#38BDF8", fontWeight: 700 }}>👤 {r.from}</div>
+                                <div style={{ fontSize: 11, color: "#64748B" }}>{formatDate(r.time)}</div>
+                              </div>
+                              <div style={{ fontSize: 14, color: "#E2E8F0", lineHeight: 1.6 }}>{r.text}</div>
                             </div>
                           ))}
                         </div>
                       </div>
                     ) : (
-                      <div style={{ textAlign: "center", padding: "20px", color: "#475569", fontSize: 14 }}>Belum ada balasan dari admin.</div>
+                      <div style={{ textAlign: "center", padding: "20px", background: "rgba(255,255,255,0.02)", borderRadius: 10, border: "1px dashed rgba(255,255,255,0.08)" }}>
+                        <div style={{ fontSize: 24, marginBottom: 8 }}>⏳</div>
+                        <div style={{ fontSize: 14, color: "#475569" }}>Belum ada balasan dari tim.</div>
+                        <div style={{ fontSize: 12, color: "#334155", marginTop: 4 }}>Tim kami akan merespons dalam 1x24 jam kerja.</div>
+                      </div>
                     )}
                   </div>
                 </div>
               )}
             </div>
           )}
-        </div>
-      </div>
+
+        </div>  {/* tutup card */}
+      </div>    {/* tutup maxWidth container */}
     </div>
   );
 }
