@@ -34,16 +34,16 @@ function StatusBadge({ status }: { status: string }) {
 
 export default function PublicView() {
   const [tab, setTab] = useState<"kirim" | "cek">("kirim");
-const [form, setForm] = useState({
-  name:        "",
-  email:       "",
-  peran:       "Guru/Dosen",
-  jenisLaporan:"Pertanyaan/Informasi",
-  category:    "Umum",
-  subject:     "",
-  description: "",
-  priority:    "Sedang",
-});
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    peran: "Guru/Dosen",
+    jenisLaporan: "Pertanyaan/Informasi",
+    category: "Umum",
+    subject: "",
+    description: "",
+    priority: "Sedang",
+  });
   const [file, setFile] = useState<File | null>(null);
   const [submitted, setSubmitted] = useState<string | null>(null);
   const [trackId, setTrackId] = useState("");
@@ -55,51 +55,51 @@ const [form, setForm] = useState({
   const fileRef = useRef<HTMLInputElement>(null);
 
   // ─── Kirim tiket ke API ───────────────────────────────────
-const handleSubmit = async () => {
-  setError("");
-  if (!form.name || !form.email || !form.subject || !form.description) {
-    setError("Mohon lengkapi semua field yang wajib diisi.");
-    return;
-  }
-
-  setLoading(true);
-  try {
-    // 1. Upload file langsung ke Cloudinary dari browser
-    let fileUrl = "";
-    if (file) {
-      const fd = new FormData();
-      fd.append("file", file);
-      fd.append("upload_preset", "helpdesk_unsigned");
-      fd.append("folder", "helpdesk-lampiran");
-
-      const cloudName = "dg5h79mpx";  // ← ganti dengan cloud name Anda
-      const uploadRes = await fetch(
-        `https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`,
-        { method: "POST", body: fd }
-      );
-      const uploadData = await uploadRes.json();
-      if (!uploadRes.ok) throw new Error(uploadData.error?.message || "Gagal upload file");
-      fileUrl = uploadData.secure_url;
+  const handleSubmit = async () => {
+    setError("");
+    if (!form.name || !form.email || !form.subject || !form.description) {
+      setError("Mohon lengkapi semua field yang wajib diisi.");
+      return;
     }
 
-    // 2. Kirim data tiket ke server
-    const res = await fetch("/api/tiket", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...form, attachment: fileUrl }),
-    });
+    setLoading(true);
+    try {
+      // 1. Upload file langsung ke Cloudinary dari browser
+      let fileUrl = "";
+      if (file) {
+        const fd = new FormData();
+        fd.append("file", file);
+        fd.append("upload_preset", "helpdesk_unsigned");
+        fd.append("folder", "helpdesk-lampiran");
 
-    const rawText = await res.text();
-    const data    = JSON.parse(rawText);
-    if (res.ok) setSubmitted(data.id);
-    else throw new Error(data.error || "Gagal mengirim tiket");
+        const cloudName = "dg5h79mpx";  // ← ganti dengan cloud name Anda
+        const uploadRes = await fetch(
+          `https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`,
+          { method: "POST", body: fd }
+        );
+        const uploadData = await uploadRes.json();
+        if (!uploadRes.ok) throw new Error(uploadData.error?.message || "Gagal upload file");
+        fileUrl = uploadData.secure_url;
+      }
 
-  } catch (err: any) {
-    setError(err.message || "Terjadi kesalahan. Coba lagi.");
-  } finally {
-    setLoading(false);
-  }
-};
+      // 2. Kirim data tiket ke server
+      const res = await fetch("/api/tiket", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...form, attachment: fileUrl }),
+      });
+
+      const rawText = await res.text();
+      const data = JSON.parse(rawText);
+      if (res.ok) setSubmitted(data.id);
+      else throw new Error(data.error || "Gagal mengirim tiket");
+
+    } catch (err: any) {
+      setError(err.message || "Terjadi kesalahan. Coba lagi.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // ─── Cek status tiket dari API ────────────────────────────
   const handleTrack = async () => {
@@ -169,110 +169,125 @@ const handleSubmit = async () => {
         <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 24, padding: "40px", backdropFilter: "blur(20px)" }}>
 
           {/* ── KIRIM TIKET ── */}
-<div style={{ display: "grid", gap: 16 }}>
+          <div style={{ display: "grid", gap: 16 }}>
 
-  {/* Nama & Email */}
-  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-    <div>
-      <label style={{ display: "block", fontSize: 13, color: "#94A3B8", marginBottom: 6, fontWeight: 500 }}>Nama Lengkap *</label>
-      <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-        placeholder="Masukkan nama lengkap" style={inputStyle} />
-    </div>
-    <div>
-      <label style={{ display: "block", fontSize: 13, color: "#94A3B8", marginBottom: 6, fontWeight: 500 }}>Alamat Email *</label>
-      <input type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
-        placeholder="contoh@email.com" style={inputStyle} />
-    </div>
-  </div>
+            {/* Nama & Email */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+              <div>
+                <label style={{ display: "block", fontSize: 13, color: "#94A3B8", marginBottom: 6, fontWeight: 500 }}>Nama Lengkap *</label>
+                <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+                  placeholder="Masukkan nama lengkap" style={inputStyle} />
+              </div>
+              <div>
+                <label style={{ display: "block", fontSize: 13, color: "#94A3B8", marginBottom: 6, fontWeight: 500 }}>Alamat Email *</label>
+                <input type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+                  placeholder="contoh@email.com" style={inputStyle} />
+              </div>
+            </div>
 
-  {/* Peran */}
-  <div>
-    <label style={{ display: "block", fontSize: 13, color: "#94A3B8", marginBottom: 6, fontWeight: 500 }}>Peran *</label>
-    <select value={form.peran} onChange={e => setForm(f => ({ ...f, peran: e.target.value }))}
-      style={{ ...inputStyle, background: "#1E293B" }}>
-      {["Guru/Dosen", "Orang Tua Murid/Wali", "Operator Sekolah", "Mahasiswa", "Murid", "Yayasan", "Pribadi", "Lainnya"].map(o => (
-        <option key={o}>{o}</option>
-      ))}
-    </select>
-  </div>
+            {/* Peran */}
+            <div>
+              <label style={{ display: "block", fontSize: 13, color: "#94A3B8", marginBottom: 6, fontWeight: 500 }}>Peran *</label>
+              <select value={form.peran} onChange={e => setForm(f => ({ ...f, peran: e.target.value }))}
+                style={{ ...inputStyle, background: "#1E293B" }}>
+                {["Guru/Dosen", "Orang Tua Murid/Wali", "Operator Sekolah", "Mahasiswa", "Murid", "Yayasan", "Pribadi", "Lainnya"].map(o => (
+                  <option key={o}>{o}</option>
+                ))}
+              </select>
+            </div>
 
-  {/* Jenis Laporan & Kategori */}
-  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-    <div>
-      <label style={{ display: "block", fontSize: 13, color: "#94A3B8", marginBottom: 6, fontWeight: 500 }}>Jenis Laporan *</label>
-      <select value={form.jenisLaporan} onChange={e => setForm(f => ({ ...f, jenisLaporan: e.target.value }))}
-        style={{ ...inputStyle, background: "#1E293B" }}>
-        {["Pertanyaan/Informasi", "Permintaan", "Keluhan/Kendala", "Aspirasi/Saran", "Pengaduan"].map(o => (
-          <option key={o}>{o}</option>
-        ))}
-      </select>
-    </div>
-    <div>
-      <label style={{ display: "block", fontSize: 13, color: "#94A3B8", marginBottom: 6, fontWeight: 500 }}>Kategori *</label>
-      <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
-        style={{ ...inputStyle, background: "#1E293B" }}>
-        {["Lembaga/Fasilitas", "Pendidikan", "Umum", "Lainnya"].map(o => (
-          <option key={o}>{o}</option>
-        ))}
-      </select>
-    </div>
-  </div>
+            {/* Jenis Laporan & Kategori */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+              <div>
+                <label style={{ display: "block", fontSize: 13, color: "#94A3B8", marginBottom: 6, fontWeight: 500 }}>Jenis Laporan *</label>
+                <select value={form.jenisLaporan} onChange={e => setForm(f => ({ ...f, jenisLaporan: e.target.value }))}
+                  style={{ ...inputStyle, background: "#1E293B" }}>
+                  {["Pertanyaan/Informasi", "Permintaan", "Keluhan/Kendala", "Aspirasi/Saran", "Pengaduan"].map(o => (
+                    <option key={o}>{o}</option>
+                  ))}
+                </select>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                <div>
+                  <label style={{ display: "block", fontSize: 13, color: "#94A3B8", marginBottom: 6, fontWeight: 500 }}>Kategori *</label>
+                  <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
+                    style={{ ...inputStyle, background: "#1E293B" }}>
+                    {["Lembaga/Fasilitas", "Pendidikan", "Umum", "Lainnya"].map(o => (
+                      <option key={o}>{o}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: "block", fontSize: 13, color: "#94A3B8", marginBottom: 6, fontWeight: 500 }}>Prioritas *</label>
+                  <select value={form.priority} onChange={e => setForm(f => ({ ...f, priority: e.target.value }))}
+                    style={{ ...inputStyle, background: "#1E293B" }}>
+                    {[
+                      { value: "Rendah", label: "🟢 Rendah — Tidak mendesak" },
+                      { value: "Sedang", label: "🟡 Sedang — Perlu ditangani" },
+                      { value: "Tinggi", label: "🔴 Tinggi — Mendesak" },
+                    ].map(o => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
 
-  {/* Subjek */}
-  <div>
-    <label style={{ display: "block", fontSize: 13, color: "#94A3B8", marginBottom: 6, fontWeight: 500 }}>Subjek/Judul Laporan *</label>
-    <input value={form.subject} onChange={e => setForm(f => ({ ...f, subject: e.target.value }))}
-      placeholder="Tuliskan judul laporan Anda" style={inputStyle} />
-  </div>
+            {/* Subjek */}
+            <div>
+              <label style={{ display: "block", fontSize: 13, color: "#94A3B8", marginBottom: 6, fontWeight: 500 }}>Subjek/Judul Laporan *</label>
+              <input value={form.subject} onChange={e => setForm(f => ({ ...f, subject: e.target.value }))}
+                placeholder="Tuliskan judul laporan Anda" style={inputStyle} />
+            </div>
 
-  {/* Deskripsi */}
-  <div>
-    <label style={{ display: "block", fontSize: 13, color: "#94A3B8", marginBottom: 6, fontWeight: 500 }}>Deskripsi Masalah *</label>
-    <textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
-      placeholder="Jelaskan masalah atau laporan Anda secara detail..." rows={5}
-      style={{ ...inputStyle, resize: "vertical" }} />
-  </div>
+            {/* Deskripsi */}
+            <div>
+              <label style={{ display: "block", fontSize: 13, color: "#94A3B8", marginBottom: 6, fontWeight: 500 }}>Deskripsi Masalah *</label>
+              <textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+                placeholder="Jelaskan masalah atau laporan Anda secara detail..." rows={5}
+                style={{ ...inputStyle, resize: "vertical" }} />
+            </div>
 
-  {/* Upload Lampiran */}
-  <div>
-    <label style={{ display: "block", fontSize: 13, color: "#94A3B8", marginBottom: 6, fontWeight: 500 }}>Lampiran (opsional)</label>
-    <div onDragOver={e => { e.preventDefault(); setDragging(true); }}
-      onDragLeave={() => setDragging(false)}
-      onDrop={handleDrop}
-      onClick={() => fileRef.current?.click()}
-      style={{ border: `2px dashed ${dragging ? "#38BDF8" : "rgba(255,255,255,0.15)"}`, borderRadius: 12, padding: "28px 20px", textAlign: "center", cursor: "pointer", background: dragging ? "rgba(56,189,248,0.05)" : "transparent", transition: "all 0.2s" }}>
-      <input ref={fileRef} type="file" style={{ display: "none" }}
-        accept=".png,.jpg,.jpeg,.gif,.pdf,.doc,.docx"
-        onChange={e => setFile(e.target.files?.[0] || null)} />
-      {file ? (
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
-          <span style={{ fontSize: 24 }}>📎</span>
-          <div style={{ textAlign: "left" }}>
-            <div style={{ fontSize: 14, fontWeight: 600, color: "#38BDF8" }}>{file.name}</div>
-            <div style={{ fontSize: 12, color: "#64748B" }}>{(file.size / 1024).toFixed(1)} KB</div>
+            {/* Upload Lampiran */}
+            <div>
+              <label style={{ display: "block", fontSize: 13, color: "#94A3B8", marginBottom: 6, fontWeight: 500 }}>Lampiran (opsional)</label>
+              <div onDragOver={e => { e.preventDefault(); setDragging(true); }}
+                onDragLeave={() => setDragging(false)}
+                onDrop={handleDrop}
+                onClick={() => fileRef.current?.click()}
+                style={{ border: `2px dashed ${dragging ? "#38BDF8" : "rgba(255,255,255,0.15)"}`, borderRadius: 12, padding: "28px 20px", textAlign: "center", cursor: "pointer", background: dragging ? "rgba(56,189,248,0.05)" : "transparent", transition: "all 0.2s" }}>
+                <input ref={fileRef} type="file" style={{ display: "none" }}
+                  accept=".png,.jpg,.jpeg,.gif,.pdf,.doc,.docx"
+                  onChange={e => setFile(e.target.files?.[0] || null)} />
+                {file ? (
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
+                    <span style={{ fontSize: 24 }}>📎</span>
+                    <div style={{ textAlign: "left" }}>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: "#38BDF8" }}>{file.name}</div>
+                      <div style={{ fontSize: 12, color: "#64748B" }}>{(file.size / 1024).toFixed(1)} KB</div>
+                    </div>
+                    <button onClick={e => { e.stopPropagation(); setFile(null); }}
+                      style={{ background: "rgba(239,68,68,0.2)", border: "none", color: "#EF4444", borderRadius: 6, padding: "4px 8px", cursor: "pointer", fontSize: 12 }}>
+                      Hapus
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <div style={{ fontSize: 32, marginBottom: 8 }}>☁️</div>
+                    <div style={{ fontSize: 14, color: "#94A3B8" }}>Drag & drop atau <span style={{ color: "#38BDF8" }}>klik untuk pilih</span></div>
+                    <div style={{ fontSize: 12, color: "#475569", marginTop: 4 }}>PNG, JPG, PDF, DOC — maks. 10MB</div>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Tombol Kirim */}
+            <button onClick={handleSubmit} disabled={loading}
+              style={{ padding: "14px", borderRadius: 12, border: "none", background: loading ? "#334155" : "linear-gradient(135deg, #3B82F6, #06B6D4)", color: "#fff", fontSize: 15, fontWeight: 700, cursor: loading ? "not-allowed" : "pointer", fontFamily: "'Outfit', sans-serif" }}>
+              {loading ? "Mengirim..." : "Kirim Laporan →"}
+            </button>
+
           </div>
-          <button onClick={e => { e.stopPropagation(); setFile(null); }}
-            style={{ background: "rgba(239,68,68,0.2)", border: "none", color: "#EF4444", borderRadius: 6, padding: "4px 8px", cursor: "pointer", fontSize: 12 }}>
-            Hapus
-          </button>
-        </div>
-      ) : (
-        <>
-          <div style={{ fontSize: 32, marginBottom: 8 }}>☁️</div>
-          <div style={{ fontSize: 14, color: "#94A3B8" }}>Drag & drop atau <span style={{ color: "#38BDF8" }}>klik untuk pilih</span></div>
-          <div style={{ fontSize: 12, color: "#475569", marginTop: 4 }}>PNG, JPG, PDF, DOC — maks. 10MB</div>
-        </>
-      )}
-    </div>
-  </div>
-
-  {/* Tombol Kirim */}
-  <button onClick={handleSubmit} disabled={loading}
-    style={{ padding: "14px", borderRadius: 12, border: "none", background: loading ? "#334155" : "linear-gradient(135deg, #3B82F6, #06B6D4)", color: "#fff", fontSize: 15, fontWeight: 700, cursor: loading ? "not-allowed" : "pointer", fontFamily: "'Outfit', sans-serif" }}>
-    {loading ? "Mengirim..." : "Kirim Laporan →"}
-  </button>
-
-</div>
           {/* ── SUKSES ── */}
           {tab === "kirim" && submitted && (
             <div style={{ textAlign: "center", padding: "20px 0" }}>
@@ -327,11 +342,21 @@ const handleSubmit = async () => {
                     </div>
                   </div>
                   <div style={{ padding: "20px 24px" }}>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 20 }}>
-                      {[["Kategori", trackedTicket.category], ["Prioritas", trackedTicket.priority], ["Diperbarui", formatDate(trackedTicket.updated)]].map(([l, v]) => (
-                        <div key={l}>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12, marginBottom: 20 }}>
+                      {[
+                        ["Kategori", trackedTicket.category],
+                        ["Prioritas", trackedTicket.priority],
+                        ["Jenis", trackedTicket.jenisLaporan],
+                        ["Diperbarui", formatDate(trackedTicket.updated)],
+                      ].map(([l, v]) => (
+                        <div key={l} style={{ background: "rgba(255,255,255,0.04)", borderRadius: 8, padding: "10px 12px" }}>
                           <div style={{ fontSize: 11, color: "#64748B", fontWeight: 600, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>{l}</div>
-                          <div style={{ fontSize: 13, fontWeight: 600, color: l === "Prioritas" ? PRIORITY_COLOR[v] : "#E2E8F0" }}>{v}</div>
+                          <div style={{
+                            fontSize: 13, fontWeight: 600,
+                            color: l === "Prioritas"
+                              ? PRIORITY_COLOR[v] ?? "#E2E8F0"
+                              : "#E2E8F0"
+                          }}>{v}</div>
                         </div>
                       ))}
                     </div>
