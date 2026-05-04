@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getAllTickets, createTicket } from '../../../lib/sheets';
+import { sendTicketConfirmation, sendAdminNotification } from '../../../lib/email';
 
 // GET /api/tiket — Ambil semua tiket
 export const GET: APIRoute = async () => {
@@ -42,17 +43,40 @@ export const POST: APIRoute = async ({ request }) => {
       );
     }
 
+    // Simpan tiket ke Google Sheets
     const result = await createTicket({
       name,
       email,
       subject,
       description,
-      peran:        peran        || 'Lainnya',
+      peran: peran || 'Lainnya',
       jenisLaporan: jenisLaporan || 'Pertanyaan/Informasi',
-      category:     category     || 'Umum',
-      priority:     priority     || 'Sedang',
-      attachment:   attachment   || '',
+      category: category || 'Umum',
+      priority: priority || 'Sedang',
+      attachment: attachment || '',
     });
+
+    // Kirim email konfirmasi ke pengirim tiket
+    sendTicketConfirmation({
+      id: result.id,
+      name,
+      email,
+      subject,
+      jenisLaporan: jenisLaporan || 'Pertanyaan/Informasi',
+      category: category || 'Umum',
+    }).catch(err => console.error('Email konfirmasi gagal:', err.message));
+
+    // Kirim notifikasi ke admin
+    sendAdminNotification({
+      id: result.id,
+      name,
+      email,
+      subject,
+      peran: peran || 'Lainnya',
+      jenisLaporan: jenisLaporan || 'Pertanyaan/Informasi',
+      category: category || 'Umum',
+      description,
+    }).catch(err => console.error('Email admin gagal:', err.message));
 
     return new Response(JSON.stringify(result), {
       status: 201,
