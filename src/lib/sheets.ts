@@ -74,19 +74,19 @@ export async function getAllTickets(): Promise<Ticket[]> {
 
   const rows = res.data.values || [];
   return rows.map((row) => ({
-    id:           row[0]  || '',
-    name:         row[1]  || '',
-    email:        row[2]  || '',
-    peran:        row[3]  || '',
-    jenisLaporan: row[4]  || '',
-    subject:      row[5]  || '',
-    category:     row[6]  || '',
-    priority:     row[7]  || '',
-    status:       row[8]  || '',
-    description:  row[9]  || '',
-    attachment:   row[10] || '',
-    created:      row[11] || '',
-    updated:      row[12] || '',
+    id: row[0] || '',
+    name: row[1] || '',
+    email: row[2] || '',
+    peran: row[3] || '',
+    jenisLaporan: row[4] || '',
+    subject: row[5] || '',
+    category: row[6] || '',
+    priority: row[7] || '',
+    status: row[8] || '',
+    description: row[9] || '',
+    attachment: row[10] || '',
+    created: row[11] || '',
+    updated: row[12] || '',
   }));
 }
 
@@ -109,7 +109,7 @@ export async function createTicket(data: {
   attachment: string;
 }): Promise<{ id: string; status: string; created: string }> {
   const sheets = getSheets();
-  const id  = 'TKT-' + nanoid(6).toUpperCase();
+  const id = 'TKT-' + nanoid(6).toUpperCase();
   const now = new Date().toISOString();
 
   await sheets.spreadsheets.values.append({
@@ -147,7 +147,7 @@ export async function updateTicketStatus(id: string, status: string): Promise<vo
     range: 'Tiket!A:A',
   });
 
-  const rows     = res.data.values || [];
+  const rows = res.data.values || [];
   const rowIndex = rows.findIndex((r) => r[0] === id);
   if (rowIndex === -1) throw new Error('Tiket tidak ditemukan');
 
@@ -178,9 +178,9 @@ export async function getRepliesByTicketId(ticketId: string): Promise<Reply[]> {
     .filter((row) => row[0] === ticketId)
     .map((row) => ({
       ticketId: row[0] || '',
-      from:     row[1] || '',
-      text:     row[2] || '',
-      time:     row[3] || '',
+      from: row[1] || '',
+      text: row[2] || '',
+      time: row[3] || '',
     }));
 }
 
@@ -213,8 +213,8 @@ export async function getAllAdmins(): Promise<Admin[]> {
   return rows.map((row) => ({
     username: row[0] || '',
     password: row[1] || '',
-    nama:     row[2] || '',
-    role:     row[3] || 'admin',
+    nama: row[2] || '',
+    role: row[3] || 'admin',
   }));
 }
 
@@ -222,12 +222,12 @@ export async function getAllAdmins(): Promise<Admin[]> {
 
 export async function loginAdmin(username: string, password: string): Promise<Admin | null> {
   const admins = await getAllAdmins();
-  const found  = admins.find(a => a.username === username);
+  const found = admins.find(a => a.username === username);
   if (!found) return null;
 
   // Cek apakah password sudah di-hash atau masih plain text
   const isHashed = found.password.startsWith('$2');
-  const valid    = isHashed
+  const valid = isHashed
     ? await bcrypt.compare(password, found.password)
     : found.password === password;  // fallback untuk password lama
 
@@ -238,10 +238,10 @@ export async function loginAdmin(username: string, password: string): Promise<Ad
 export async function addAdmin(data: {
   username: string;
   password: string;
-  nama:     string;
-  role:     string;
+  nama: string;
+  role: string;
 }): Promise<void> {
-  const sheets   = getSheets();
+  const sheets = getSheets();
   const existing = await getAllAdmins();
 
   if (existing.find(a => a.username === data.username)) {
@@ -270,13 +270,13 @@ export async function deleteAdmin(username: string): Promise<void> {
     range: 'Admin!A:A',
   });
 
-  const rows     = res.data.values || [];
+  const rows = res.data.values || [];
   const rowIndex = rows.findIndex((r) => r[0] === username);
   if (rowIndex === -1) throw new Error('Admin tidak ditemukan');
 
-  const sheetMeta  = await sheets.spreadsheets.get({ spreadsheetId: SHEET_ID });
+  const sheetMeta = await sheets.spreadsheets.get({ spreadsheetId: SHEET_ID });
   const adminSheet = sheetMeta.data.sheets?.find((s) => s.properties?.title === 'Admin');
-  const sheetId    = adminSheet?.properties?.sheetId;
+  const sheetId = adminSheet?.properties?.sheetId;
 
   await sheets.spreadsheets.batchUpdate({
     spreadsheetId: SHEET_ID,
@@ -285,9 +285,9 @@ export async function deleteAdmin(username: string): Promise<void> {
         deleteDimension: {
           range: {
             sheetId,
-            dimension:  'ROWS',
+            dimension: 'ROWS',
             startIndex: rowIndex,
-            endIndex:   rowIndex + 1,
+            endIndex: rowIndex + 1,
           },
         },
       }],
@@ -299,13 +299,13 @@ export async function deleteAdmin(username: string): Promise<void> {
 export async function hashExistingPassword(username: string): Promise<void> {
   const sheets = getSheets();
   const admins = await getAllAdmins();
-  const idx    = admins.findIndex(a => a.username === username);
+  const idx = admins.findIndex(a => a.username === username);
   if (idx === -1) throw new Error('Admin tidak ditemukan');
 
   // Skip jika sudah di-hash
   if (admins[idx].password.startsWith('$2')) return;
 
-  const hashed   = await bcrypt.hash(admins[idx].password, 12);
+  const hashed = await bcrypt.hash(admins[idx].password, 12);
   const sheetRow = idx + 2; // +2 karena baris 1 = header, index mulai 0
 
   await sheets.spreadsheets.values.update({
@@ -314,4 +314,83 @@ export async function hashExistingPassword(username: string): Promise<void> {
     valueInputOption: 'RAW',
     requestBody: { values: [[hashed]] },
   });
+}
+
+// ─── Hapus tiket ─────────────────────────────────────────────
+export async function deleteTicket(id: string): Promise<void> {
+  const sheets = getSheets();
+
+  // Cari baris tiket berdasarkan ID
+  const res = await sheets.spreadsheets.values.get({
+    spreadsheetId: SHEET_ID,
+    range: 'Tiket!A:A',
+  });
+
+  const rows = res.data.values || [];
+  const rowIndex = rows.findIndex(r => r[0] === id);
+  if (rowIndex === -1) throw new Error('Tiket tidak ditemukan');
+
+  // Ambil sheetId dari tab Tiket
+  const sheetMeta = await sheets.spreadsheets.get({ spreadsheetId: SHEET_ID });
+  const tiketSheet = sheetMeta.data.sheets?.find(s => s.properties?.title === 'Tiket');
+  const sheetId = tiketSheet?.properties?.sheetId;
+
+  // Hapus baris
+  await sheets.spreadsheets.batchUpdate({
+    spreadsheetId: SHEET_ID,
+    requestBody: {
+      requests: [{
+        deleteDimension: {
+          range: {
+            sheetId,
+            dimension: 'ROWS',
+            startIndex: rowIndex,
+            endIndex: rowIndex + 1,
+          },
+        },
+      }],
+    },
+  });
+
+  // Hapus juga semua balasan tiket ini
+  await deleteRepliesByTicketId(id);
+}
+
+// ─── Hapus semua balasan tiket ────────────────────────────────
+export async function deleteRepliesByTicketId(ticketId: string): Promise<void> {
+  const sheets = getSheets();
+
+  const res = await sheets.spreadsheets.values.get({
+    spreadsheetId: SHEET_ID,
+    range: 'Balasan!A:A',
+  });
+
+  const rows = res.data.values || [];
+  const sheetMeta = await sheets.spreadsheets.get({ spreadsheetId: SHEET_ID });
+  const balasanSheet = sheetMeta.data.sheets?.find(s => s.properties?.title === 'Balasan');
+  const sheetId = balasanSheet?.properties?.sheetId;
+
+  // Kumpulkan index baris yang perlu dihapus (dari bawah ke atas)
+  const toDelete = rows
+    .map((r, i) => ({ val: r[0], idx: i }))
+    .filter(r => r.val === ticketId)
+    .reverse(); // hapus dari bawah agar index tidak bergeser
+
+  for (const row of toDelete) {
+    await sheets.spreadsheets.batchUpdate({
+      spreadsheetId: SHEET_ID,
+      requestBody: {
+        requests: [{
+          deleteDimension: {
+            range: {
+              sheetId,
+              dimension: 'ROWS',
+              startIndex: row.idx,
+              endIndex: row.idx + 1,
+            },
+          },
+        }],
+      },
+    });
+  }
 }

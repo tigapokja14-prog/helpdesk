@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getTicketById, updateTicketStatus, getRepliesByTicketId } from '../../../lib/sheets';
 import { requireAuth } from '../../../lib/auth';
+import { getTicketById, updateTicketStatus, getRepliesByTicketId, deleteTicket } from '../../../lib/sheets';
 
 export const GET: APIRoute = async ({ params }) => {
   try {
@@ -43,6 +44,36 @@ export const PATCH: APIRoute = async ({ params, request }) => {
   } catch (err: any) {
     return new Response(JSON.stringify({ error: 'Gagal memperbarui status', detail: err.message }), {
       status: 500, headers: { 'Content-Type': 'application/json' },
+    });
+  }
+};
+
+
+
+// DELETE /api/tiket/:id — Hapus tiket (superadmin only)
+export const DELETE: APIRoute = async ({ params, request }) => {
+  const auth = requireAuth(request);
+  if (auth instanceof Response) return auth;
+
+  // Hanya superadmin yang bisa hapus
+  if (auth.role !== 'superadmin') {
+    return new Response(JSON.stringify({ error: 'Hanya superadmin yang dapat menghapus tiket' }), {
+      status: 403,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  try {
+    await deleteTicket(params.id!);
+    return new Response(JSON.stringify({ success: true }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  } catch (err: any) {
+    console.error('[DELETE /api/tiket/:id]', err.message);
+    return new Response(JSON.stringify({ error: 'Gagal menghapus tiket', detail: err.message }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
     });
   }
 };

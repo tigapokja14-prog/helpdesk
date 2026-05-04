@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 
 const STATUS_COLOR: Record<string, { bg: string; text: string; dot: string }> = {
-  "Menunggu":     { bg: "#FFF3CD", text: "#856404", dot: "#FFC107" },
+  "Menunggu": { bg: "#FFF3CD", text: "#856404", dot: "#FFC107" },
   "Dalam Proses": { bg: "#CCE5FF", text: "#004085", dot: "#0D6EFD" },
-  "Selesai":      { bg: "#D4EDDA", text: "#155724", dot: "#28A745" },
-  "Ditolak":      { bg: "#F8D7DA", text: "#721C24", dot: "#DC3545" },
+  "Selesai": { bg: "#D4EDDA", text: "#155724", dot: "#28A745" },
+  "Ditolak": { bg: "#F8D7DA", text: "#721C24", dot: "#DC3545" },
 };
 const PRIORITY_COLOR: Record<string, string> = {
   "Tinggi": "#EF4444",
@@ -39,10 +39,10 @@ function DonutChart({ data }: { data: { label: string; value: number; color: str
           <circle cx={cx} cy={cy} r={radius} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="16" />
         ) : (
           data.map((d, i) => {
-            const pct    = d.value / total;
-            const dash   = pct * circumference;
+            const pct = d.value / total;
+            const dash = pct * circumference;
             const offset = cumulative * circumference;
-            cumulative  += pct;
+            cumulative += pct;
             return (
               <circle key={i} cx={cx} cy={cy} r={radius} fill="none"
                 stroke={d.color} strokeWidth="16"
@@ -95,20 +95,20 @@ function TrendChart({ tickets }: { tickets: any[] }) {
     d.setDate(d.getDate() - (6 - i));
     return {
       label: d.toLocaleDateString("id-ID", { weekday: "short" }),
-      date:  d.toISOString().slice(0, 10),
+      date: d.toISOString().slice(0, 10),
       count: 0,
     };
   });
 
   tickets.forEach(t => {
     const date = t.created?.slice(0, 10);
-    const day  = days.find(d => d.date === date);
+    const day = days.find(d => d.date === date);
     if (day) day.count++;
   });
 
   const max = Math.max(...days.map(d => d.count), 1);
-  const H   = 80;
-  const W   = 100 / days.length;
+  const H = 80;
+  const W = 100 / days.length;
 
   return (
     <div>
@@ -128,10 +128,10 @@ function TrendChart({ tickets }: { tickets: any[] }) {
 // ─── Dashboard Statistik ──────────────────────────────────────
 function StatsDashboard({ tickets }: { tickets: any[] }) {
   const statusData = [
-    { label: "Menunggu",     value: tickets.filter(t => t.status === "Menunggu").length,     color: "#F59E0B" },
+    { label: "Menunggu", value: tickets.filter(t => t.status === "Menunggu").length, color: "#F59E0B" },
     { label: "Dalam Proses", value: tickets.filter(t => t.status === "Dalam Proses").length, color: "#3B82F6" },
-    { label: "Selesai",      value: tickets.filter(t => t.status === "Selesai").length,      color: "#10B981" },
-    { label: "Ditolak",      value: tickets.filter(t => t.status === "Ditolak").length,      color: "#EF4444" },
+    { label: "Selesai", value: tickets.filter(t => t.status === "Selesai").length, color: "#10B981" },
+    { label: "Ditolak", value: tickets.filter(t => t.status === "Ditolak").length, color: "#EF4444" },
   ];
 
   const kategoriMap: Record<string, number> = {};
@@ -172,11 +172,11 @@ function StatsDashboard({ tickets }: { tickets: any[] }) {
       {/* STAT CARDS */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 14 }}>
         {[
-          { label: "Total Tiket",   value: tickets.length,                                              color: "#3B82F6", icon: "📋" },
-          { label: "Menunggu",      value: tickets.filter(t => t.status === "Menunggu").length,         color: "#F59E0B", icon: "⏳" },
-          { label: "Dalam Proses",  value: tickets.filter(t => t.status === "Dalam Proses").length,     color: "#0EA5E9", icon: "🔄" },
-          { label: "Selesai",       value: tickets.filter(t => t.status === "Selesai").length,          color: "#10B981", icon: "✅" },
-          { label: "Tingkat Selesai", value: `${selesaiPct}%`,                                          color: "#8B5CF6", icon: "📊" },
+          { label: "Total Tiket", value: tickets.length, color: "#3B82F6", icon: "📋" },
+          { label: "Menunggu", value: tickets.filter(t => t.status === "Menunggu").length, color: "#F59E0B", icon: "⏳" },
+          { label: "Dalam Proses", value: tickets.filter(t => t.status === "Dalam Proses").length, color: "#0EA5E9", icon: "🔄" },
+          { label: "Selesai", value: tickets.filter(t => t.status === "Selesai").length, color: "#10B981", icon: "✅" },
+          { label: "Tingkat Selesai", value: `${selesaiPct}%`, color: "#8B5CF6", icon: "📊" },
         ].map(s => (
           <div key={s.label} style={{ ...cardStyle, position: "relative", overflow: "hidden" }}>
             <div style={{ position: "absolute", top: -16, right: -16, width: 64, height: 64, borderRadius: "50%", background: s.color, opacity: 0.1 }} />
@@ -234,12 +234,12 @@ function StatsDashboard({ tickets }: { tickets: any[] }) {
 
 // ─── Manajemen Admin ──────────────────────────────────────────
 function ManajemenAdmin({ token, role }: { token: string; role: string }) {
-  const [admins, setAdmins]     = useState<any[]>([]);
-  const [loading, setLoading]   = useState(true);
+  const [admins, setAdmins] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm]         = useState({ username: "", password: "", nama: "", role: "admin" });
-  const [formErr, setFormErr]   = useState("");
-  const [toast, setToast]       = useState<{ msg: string; type: string } | null>(null);
+  const [form, setForm] = useState({ username: "", password: "", nama: "", role: "admin" });
+  const [formErr, setFormErr] = useState("");
+  const [toast, setToast] = useState<{ msg: string; type: string } | null>(null);
 
   const headers = { "Content-Type": "application/json", "Authorization": `Bearer ${token}` };
 
@@ -251,7 +251,7 @@ function ManajemenAdmin({ token, role }: { token: string; role: string }) {
   const fetchAdmins = async () => {
     setLoading(true);
     try {
-      const res  = await fetch("/api/auth/admins", { headers });
+      const res = await fetch("/api/auth/admins", { headers });
       const data = await res.json();
       if (res.ok) setAdmins(data);
     } finally { setLoading(false); }
@@ -263,7 +263,7 @@ function ManajemenAdmin({ token, role }: { token: string; role: string }) {
     setFormErr("");
     if (!form.username || !form.password || !form.nama) { setFormErr("Semua field wajib diisi."); return; }
     if (form.password.length < 6) { setFormErr("Password minimal 6 karakter."); return; }
-    const res  = await fetch("/api/auth/admins", { method: "POST", headers, body: JSON.stringify(form) });
+    const res = await fetch("/api/auth/admins", { method: "POST", headers, body: JSON.stringify(form) });
     const data = await res.json();
     if (res.ok) {
       showToast("Admin berhasil ditambahkan");
@@ -275,7 +275,7 @@ function ManajemenAdmin({ token, role }: { token: string; role: string }) {
 
   const handleHapus = async (username: string) => {
     if (!confirm(`Hapus admin "${username}"?`)) return;
-    const res  = await fetch("/api/auth/admins", { method: "DELETE", headers, body: JSON.stringify({ username }) });
+    const res = await fetch("/api/auth/admins", { method: "DELETE", headers, body: JSON.stringify({ username }) });
     const data = await res.json();
     if (res.ok) { showToast(`Admin "${username}" dihapus`); fetchAdmins(); }
     else showToast(data.error || "Gagal menghapus", "error");
@@ -290,7 +290,7 @@ function ManajemenAdmin({ token, role }: { token: string; role: string }) {
 
   const ROLE_COLOR: Record<string, { bg: string; text: string }> = {
     superadmin: { bg: "rgba(139,92,246,0.15)", text: "#A78BFA" },
-    admin:      { bg: "rgba(56,189,248,0.12)", text: "#38BDF8" },
+    admin: { bg: "rgba(56,189,248,0.12)", text: "#38BDF8" },
   };
 
   return (
@@ -379,15 +379,15 @@ function ManajemenAdmin({ token, role }: { token: string; role: string }) {
 function LoginScreen({ onLogin }: { onLogin: (token: string, nama: string, role: string) => void }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [err, setErr]           = useState("");
-  const [loading, setLoading]   = useState(false);
+  const [err, setErr] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
     setErr("");
     if (!username.trim() || !password.trim()) { setErr("Username dan password wajib diisi."); return; }
     setLoading(true);
     try {
-      const res  = await fetch("/api/auth/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username, password }) });
+      const res = await fetch("/api/auth/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username, password }) });
       const data = await res.json();
       if (res.ok) onLogin(data.token, data.nama, data.role);
       else setErr(data.error || "Login gagal");
@@ -434,18 +434,18 @@ function LoginScreen({ onLogin }: { onLogin: (token: string, nama: string, role:
 
 // ─── Dashboard ────────────────────────────────────────────────
 function Dashboard({ token, nama, role, onLogout }: { token: string; nama: string; role: string; onLogout: () => void }) {
-  const [tickets, setTickets]               = useState<any[]>([]);
-  const [selected, setSelected]             = useState<any>(null);
-  const [search, setSearch]                 = useState("");
-  const [filterStatus, setFilterStatus]     = useState("Semua");
+  const [tickets, setTickets] = useState<any[]>([]);
+  const [selected, setSelected] = useState<any>(null);
+  const [search, setSearch] = useState("");
+  const [filterStatus, setFilterStatus] = useState("Semua");
   const [filterPriority, setFilterPriority] = useState("Semua");
-  const [reply, setReply]                   = useState("");
-  const [newStatus, setNewStatus]           = useState("");
-  const [toast, setToast]                   = useState<{ msg: string; type: string } | null>(null);
+  const [reply, setReply] = useState("");
+  const [newStatus, setNewStatus] = useState("");
+  const [toast, setToast] = useState<{ msg: string; type: string } | null>(null);
   const [loadingTickets, setLoadingTickets] = useState(true);
-  const [loadingAction, setLoadingAction]   = useState(false);
-  const [menu, setMenu]                     = useState<"dashboard" | "tiket" | "admin">("dashboard");
-  const [sidebarOpen, setSidebarOpen]       = useState(false);
+  const [loadingAction, setLoadingAction] = useState(false);
+  const [menu, setMenu] = useState<"dashboard" | "tiket" | "admin">("dashboard");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const headers = { "Content-Type": "application/json", "Authorization": `Bearer ${token}` };
 
@@ -457,14 +457,14 @@ function Dashboard({ token, nama, role, onLogout }: { token: string; nama: strin
   const fetchTickets = async () => {
     setLoadingTickets(true);
     try {
-      const res  = await fetch("/api/tiket");
+      const res = await fetch("/api/tiket");
       const data = await res.json();
       if (res.ok) setTickets(data);
     } finally { setLoadingTickets(false); }
   };
 
   const fetchTicketDetail = async (id: string) => {
-    const res  = await fetch(`/api/tiket/${id}`);
+    const res = await fetch(`/api/tiket/${id}`);
     const data = await res.json();
     if (res.ok) { setSelected(data); setNewStatus(data.status); setReply(""); }
   };
@@ -472,9 +472,9 @@ function Dashboard({ token, nama, role, onLogout }: { token: string; nama: strin
   useEffect(() => { fetchTickets(); }, []);
 
   const filtered = tickets.filter(t => {
-    const q           = search.toLowerCase();
+    const q = search.toLowerCase();
     const matchSearch = t.id?.toLowerCase().includes(q) || t.subject?.toLowerCase().includes(q) || t.name?.toLowerCase().includes(q);
-    const matchStatus   = filterStatus   === "Semua" || t.status   === filterStatus;
+    const matchStatus = filterStatus === "Semua" || t.status === filterStatus;
     const matchPriority = filterPriority === "Semua" || t.priority === filterPriority;
     return matchSearch && matchStatus && matchPriority;
   });
@@ -483,7 +483,7 @@ function Dashboard({ token, nama, role, onLogout }: { token: string; nama: strin
     if (!newStatus || !selected) return;
     setLoadingAction(true);
     try {
-      const res  = await fetch(`/api/tiket/${selected.id}`, { method: "PATCH", headers, body: JSON.stringify({ status: newStatus }) });
+      const res = await fetch(`/api/tiket/${selected.id}`, { method: "PATCH", headers, body: JSON.stringify({ status: newStatus }) });
       const data = await res.json();
       if (res.ok) { await fetchTickets(); await fetchTicketDetail(selected.id); showToast(`Status diperbarui ke "${newStatus}"`); }
       else showToast(data.error || "Gagal memperbarui status", "error");
@@ -494,10 +494,28 @@ function Dashboard({ token, nama, role, onLogout }: { token: string; nama: strin
     if (!reply.trim() || !selected) return;
     setLoadingAction(true);
     try {
-      const res  = await fetch("/api/balasan", { method: "POST", headers, body: JSON.stringify({ ticketId: selected.id, text: reply }) });
+      const res = await fetch("/api/balasan", { method: "POST", headers, body: JSON.stringify({ ticketId: selected.id, text: reply }) });
       const data = await res.json();
       if (res.ok) { setReply(""); await fetchTicketDetail(selected.id); showToast("Balasan berhasil dikirim"); }
       else showToast(data.error || "Gagal mengirim balasan", "error");
+    } finally { setLoadingAction(false); }
+  };
+
+  const handleHapusTicket = async (id: string) => {
+    if (!confirm(`Hapus tiket ${id}? Tindakan ini tidak bisa dibatalkan.`)) return;
+    setLoadingAction(true);
+    try {
+      const res = await fetch(`/api/tiket/${id}`, { method: "DELETE", headers });
+      const data = await res.json();
+      if (res.ok) {
+        setSelected(null);
+        await fetchTickets();
+        showToast(`Tiket ${id} berhasil dihapus`);
+      } else {
+        showToast(data.error || "Gagal menghapus tiket", "error");
+      }
+    } catch (err: any) {
+      showToast("Error: " + err.message, "error");
     } finally { setLoadingAction(false); }
   };
 
@@ -506,13 +524,13 @@ function Dashboard({ token, nama, role, onLogout }: { token: string; nama: strin
     try {
       const ticketsWithReplies = await Promise.all(
         tickets.map(async (t) => {
-          const res  = await fetch(`/api/tiket/${t.id}`);
+          const res = await fetch(`/api/tiket/${t.id}`);
           const data = await res.json();
           return { ...t, replies: data.replies || [] };
         })
       );
-      const tiketHeader  = ["ID", "Nama", "Email", "Peran", "Jenis Laporan", "Subjek", "Kategori", "Prioritas", "Status", "Deskripsi", "Lampiran", "Dibuat", "Diperbarui"];
-      const tiketRows    = ticketsWithReplies.map(t => [t.id, t.name, t.email, t.peran, t.jenisLaporan, t.subject, t.category, t.priority, t.status, t.description, t.attachment || "", t.created, t.updated]);
+      const tiketHeader = ["ID", "Nama", "Email", "Peran", "Jenis Laporan", "Subjek", "Kategori", "Prioritas", "Status", "Deskripsi", "Lampiran", "Dibuat", "Diperbarui"];
+      const tiketRows = ticketsWithReplies.map(t => [t.id, t.name, t.email, t.peran, t.jenisLaporan, t.subject, t.category, t.priority, t.status, t.description, t.attachment || "", t.created, t.updated]);
       const balasanHeader = ["ID Tiket", "Subjek", "Dari", "Pesan", "Waktu"];
       const balasanRows: string[][] = [];
       ticketsWithReplies.forEach(t => {
@@ -520,20 +538,20 @@ function Dashboard({ token, nama, role, onLogout }: { token: string; nama: strin
         else t.replies.forEach((r: any) => balasanRows.push([t.id, t.subject, r.from, r.text, r.time]));
       });
       const toCSV = (h: string[], r: string[][]) => [h, ...r].map(row => row.map(v => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
-      const csv   = "DATA TIKET\n" + toCSV(tiketHeader, tiketRows) + "\n\n\nDATA BALASAN\n" + toCSV(balasanHeader, balasanRows);
-      const blob  = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
-      const url   = URL.createObjectURL(blob);
-      const a     = document.createElement("a");
-      a.href      = url; a.download = `helpdesk-export-${new Date().toISOString().slice(0, 10)}.csv`; a.click();
+      const csv = "DATA TIKET\n" + toCSV(tiketHeader, tiketRows) + "\n\n\nDATA BALASAN\n" + toCSV(balasanHeader, balasanRows);
+      const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = `helpdesk-export-${new Date().toISOString().slice(0, 10)}.csv`; a.click();
       URL.revokeObjectURL(url);
       showToast(`Export berhasil — ${tickets.length} tiket`);
     } catch (err: any) { showToast("Gagal export: " + err.message, "error"); }
   };
 
   const MENU_ITEMS = [
-    { id: "dashboard", label: "Dashboard",    icon: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" },
-    { id: "tiket",     label: "Semua Tiket",  icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" },
-    { id: "admin",     label: "Kelola Admin", icon: "M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75M13 7a4 4 0 11-8 0 4 4 0 018 0z", superadminOnly: true },
+    { id: "dashboard", label: "Dashboard", icon: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" },
+    { id: "tiket", label: "Semua Tiket", icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" },
+    { id: "admin", label: "Kelola Admin", icon: "M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75M13 7a4 4 0 11-8 0 4 4 0 018 0z", superadminOnly: true },
   ];
 
   const sidebarContent = (
@@ -556,31 +574,27 @@ function Dashboard({ token, nama, role, onLogout }: { token: string; nama: strin
       <div style={{ fontSize: 11, color: "#475569", fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", padding: "0 8px", marginBottom: 8 }}>Menu</div>
       {MENU_ITEMS.map(m => (
         (m.superadminOnly && role !== "superadmin") ? null :
-        <div key={m.id} onClick={() => { setMenu(m.id as any); setSidebarOpen(false); }}
-          style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 10, marginBottom: 4, cursor: "pointer", transition: "all 0.15s",
-            background: menu === m.id ? "rgba(56,189,248,0.1)" : "transparent",
-            color:      menu === m.id ? "#38BDF8" : "#64748B",
-            fontWeight: menu === m.id ? 600 : 400, fontSize: 14 }}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d={m.icon} />
-          </svg>
-          {m.label}
-        </div>
+          <div key={m.id} onClick={() => { setMenu(m.id as any); setSidebarOpen(false); }}
+            style={{
+              display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 10, marginBottom: 4, cursor: "pointer", transition: "all 0.15s",
+              background: menu === m.id ? "rgba(56,189,248,0.1)" : "transparent",
+              color: menu === m.id ? "#38BDF8" : "#64748B",
+              fontWeight: menu === m.id ? 600 : 400, fontSize: 14
+            }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d={m.icon} />
+            </svg>
+            {m.label}
+          </div>
       ))}
 
-      {/* Divider */}
-      <div style={{ height: 1, background: "rgba(255,255,255,0.06)", margin: "12px 0" }} />
-
-      {/* Logout — di bawah menu */}
-      <button onClick={onLogout} style={{ width: "100%", padding: "10px 12px", borderRadius: 10, border: "1px solid rgba(239,68,68,0.3)", background: "rgba(239,68,68,0.08)", color: "#F87171", fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: "'Outfit', sans-serif", display: "flex", alignItems: "center", gap: 8, justifyContent: "center" }}>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" /></svg>
-        Keluar
-      </button>
-
-      {/* Spacer bawah */}
-      <div style={{ flex: 1 }} />
-
-
+      {/* Logout */}
+      <div style={{ marginTop: "auto" }}>
+        <button onClick={onLogout} style={{ width: "100%", padding: "10px 12px", borderRadius: 10, border: "1px solid rgba(239,68,68,0.3)", background: "rgba(239,68,68,0.08)", color: "#F87171", fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: "'Outfit', sans-serif", display: "flex", alignItems: "center", gap: 8, justifyContent: "center" }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" /></svg>
+          Keluar
+        </button>
+      </div>
     </div>
   );
 
@@ -704,6 +718,14 @@ function Dashboard({ token, nama, role, onLogout }: { token: string; nama: strin
                           <div style={{ fontSize: 12, fontWeight: 700, color: PRIORITY_COLOR[t.priority] }}>● {t.priority}</div>
                           <div><StatusBadge status={t.status} /></div>
                           <div style={{ fontSize: 11, color: "#64748B" }}>{formatDate(t.created)}</div>
+                          {role === "superadmin" && (
+                            <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+                              <button onClick={e => { e.stopPropagation(); handleHapusTicket(t.id); }} disabled={loadingAction}
+                                style={{ padding: "5px 10px", borderRadius: 6, border: "1px solid rgba(239,68,68,0.3)", background: "rgba(239,68,68,0.08)", color: "#F87171", fontSize: 12, cursor: "pointer", fontFamily: "'Outfit', sans-serif" }}>
+                                🗑️
+                              </button>
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
@@ -778,6 +800,19 @@ function Dashboard({ token, nama, role, onLogout }: { token: string; nama: strin
                           {loadingAction ? "Mengirim..." : "Kirim Balasan"}
                         </button>
                       </div>
+
+                      {/* Hapus Tiket — superadmin only */}
+                      {role === "superadmin" && (
+                        <div style={{ marginTop: 16, paddingTop: 16, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+                          <button onClick={() => handleHapusTicket(selected.id)} disabled={loadingAction}
+                            style={{ width: "100%", padding: "10px", borderRadius: 8, border: "1px solid rgba(239,68,68,0.3)", background: "rgba(239,68,68,0.08)", color: "#F87171", fontSize: 13, fontWeight: 600, cursor: loadingAction ? "not-allowed" : "pointer", fontFamily: "'Outfit', sans-serif", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                            🗑️ Hapus Tiket Ini
+                          </button>
+                          <p style={{ fontSize: 11, color: "#475569", textAlign: "center", margin: "6px 0 0" }}>
+                            Hanya superadmin • Tidak bisa dibatalkan
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
@@ -796,8 +831,8 @@ function Dashboard({ token, nama, role, onLogout }: { token: string; nama: strin
 // ─── Main Export ──────────────────────────────────────────────
 export default function AdminView() {
   const [token, setToken] = useState<string | null>(null);
-  const [nama,  setNama]  = useState("");
-  const [role,  setRole]  = useState("");
+  const [nama, setNama] = useState("");
+  const [role, setRole] = useState("");
 
   return token
     ? <Dashboard token={token} nama={nama} role={role} onLogout={() => { setToken(null); setNama(""); setRole(""); }} />
