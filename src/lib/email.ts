@@ -1,10 +1,17 @@
-import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-const FROM = process.env.EMAIL_FROM || 'onboarding@resend.dev';
-const ADMIN = process.env.EMAIL_ADMIN || '';
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.GMAIL_USER,
+        pass: process.env.GMAIL_APP_PASSWORD,
+    },
+});
 
-// ─── Email ke pengirim tiket ──────────────────────────────────
+const FROM = `HelpDeskID <${process.env.GMAIL_USER}>`;
+const ADMIN = process.env.EMAIL_ADMIN || process.env.GMAIL_USER || '';
+
+// ─── Email konfirmasi ke pengirim tiket ──────────────────────
 export async function sendTicketConfirmation(ticket: {
     id: string;
     name: string;
@@ -13,7 +20,7 @@ export async function sendTicketConfirmation(ticket: {
     jenisLaporan: string;
     category: string;
 }) {
-    await resend.emails.send({
+    await transporter.sendMail({
         from: FROM,
         to: ticket.email,
         subject: `[${ticket.id}] Tiket Anda Berhasil Dikirim`,
@@ -47,14 +54,17 @@ export async function sendTicketConfirmation(ticket: {
             </tr>
             <tr style="border-top: 1px solid #F1F5F9;">
               <td style="padding: 8px 0; color: #64748B; font-size: 14px;">Status</td>
-              <td style="padding: 8px 0;"><span style="background: #FFF3CD; color: #856404; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 600;">⏳ Menunggu</span></td>
+              <td style="padding: 8px 0;">
+                <span style="background: #FFF3CD; color: #856404; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 600;">⏳ Menunggu</span>
+              </td>
             </tr>
           </table>
         </div>
 
         <div style="background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 10px; padding: 16px; margin-bottom: 24px;">
           <p style="margin: 0; color: #1E40AF; font-size: 14px;">
-            💡 <strong>Simpan ID Tiket Anda:</strong> <code style="background: #DBEAFE; padding: 2px 8px; border-radius: 4px; font-size: 16px; font-weight: 700;">${ticket.id}</code>
+            💡 <strong>Simpan ID Tiket Anda:</strong>
+            <code style="background: #DBEAFE; padding: 2px 8px; border-radius: 4px; font-size: 16px; font-weight: 700;">${ticket.id}</code>
             <br/>Gunakan ID ini untuk mengecek status tiket kapan saja.
           </p>
         </div>
@@ -81,9 +91,9 @@ export async function sendAdminNotification(ticket: {
     category: string;
     description: string;
 }) {
-    if (!ADMIN) return; // Skip jika EMAIL_ADMIN tidak diset
+    if (!ADMIN) return;
 
-    await resend.emails.send({
+    await transporter.sendMail({
         from: FROM,
         to: ADMIN,
         subject: `[Tiket Baru] ${ticket.id} — ${ticket.subject}`,
@@ -103,7 +113,9 @@ export async function sendAdminNotification(ticket: {
             </tr>
             <tr style="border-top: 1px solid #F1F5F9;">
               <td style="padding: 8px 0; color: #64748B; font-size: 14px;">Email</td>
-              <td style="padding: 8px 0;"><a href="mailto:${ticket.email}" style="color: #3B82F6;">${ticket.email}</a></td>
+              <td style="padding: 8px 0;">
+                <a href="mailto:${ticket.email}" style="color: #3B82F6;">${ticket.email}</a>
+              </td>
             </tr>
             <tr style="border-top: 1px solid #F1F5F9;">
               <td style="padding: 8px 0; color: #64748B; font-size: 14px;">Peran</td>
@@ -147,7 +159,7 @@ export async function sendReplyNotification(data: {
     replyText: string;
     fromName: string;
 }) {
-    await resend.emails.send({
+    await transporter.sendMail({
         from: FROM,
         to: data.toEmail,
         subject: `[${data.ticketId}] Ada balasan untuk laporan Anda`,
@@ -167,7 +179,9 @@ export async function sendReplyNotification(data: {
         </div>
 
         <div style="background: #EFF6FF; border-left: 4px solid #3B82F6; border-radius: 0 10px 10px 0; padding: 16px 20px; margin: 20px 0;">
-          <div style="font-size: 12px; color: #3B82F6; font-weight: 700; margin-bottom: 8px;">BALASAN DARI ${data.fromName.toUpperCase()}</div>
+          <div style="font-size: 12px; color: #3B82F6; font-weight: 700; margin-bottom: 8px;">
+            BALASAN DARI ${data.fromName.toUpperCase()}
+          </div>
           <p style="margin: 0; color: #1E293B; font-size: 15px; line-height: 1.6;">${data.replyText}</p>
         </div>
 
