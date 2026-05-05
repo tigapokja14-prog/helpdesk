@@ -143,15 +143,21 @@ export default function PublicView() {
           <span style={{ fontWeight: 700, fontSize: 20, color: "#fff" }}>BPMP JAKARTA<span style={{ color: "#38BDF8" }}> | Unit Layanan Terpadu</span></span>
         </div>
         <div style={{ display: "flex", gap: 8 }}>
-          {(["kirim", "cek"] as const).map(t => (
-            <button key={t} onClick={() => { setTab(t); setSubmitted(null); setTrackedTicket(null); setTrackError(""); setError(""); }}
-              style={{
-                padding: "8px 22px", borderRadius: 30, border: "none", cursor: "pointer", fontFamily: "'Outfit', sans-serif", fontWeight: 600, fontSize: 14,
-                background: tab === t ? "linear-gradient(135deg, #3B82F6, #06B6D4)" : "rgba(255,255,255,0.08)", color: tab === t ? "#fff" : "#94A3B8"
-              }}>
-              {t === "kirim" ? "Kirim Tiket" : "Cek Status"}
-            </button>
-          ))}
+          <button onClick={() => { setTab("kirim"); setSubmitted(null); setError(""); }}
+            style={{
+              padding: "8px 22px", borderRadius: 30, border: "none", cursor: "pointer", fontFamily: "'Outfit', sans-serif", fontWeight: 600, fontSize: 14,
+              background: tab === "kirim" ? "linear-gradient(135deg, #3B82F6, #06B6D4)" : "rgba(255,255,255,0.08)",
+              color: tab === "kirim" ? "#fff" : "#94A3B8"
+            }}>
+            Kirim Tiket
+          </button>
+          <a href="/cek-status"
+            style={{
+              padding: "8px 22px", borderRadius: 30, border: "none", cursor: "pointer", fontFamily: "'Outfit', sans-serif", fontWeight: 600, fontSize: 14,
+              background: "rgba(255,255,255,0.08)", color: "#94A3B8", textDecoration: "none", display: "inline-flex", alignItems: "center"
+            }}>
+            Cek Status
+          </a>
         </div>
       </nav>
 
@@ -304,11 +310,10 @@ export default function PublicView() {
                   style={{ padding: "10px 24px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.15)", background: "transparent", color: "#E2E8F0", cursor: "pointer", fontFamily: "'Outfit', sans-serif", fontWeight: 600 }}>
                   Kirim Tiket Baru
                 </button>
-                <button onClick={() => { setTab("cek"); setTrackId(submitted); setSubmitted(null); }}
-                  style={{ padding: "10px 24px", borderRadius: 10, border: "none", background: "linear-gradient(135deg, #3B82F6, #06B6D4)", color: "#fff", cursor: "pointer", fontFamily: "'Outfit', sans-serif", fontWeight: 600 }}>
+                <a href={`/cek-status?id=${submitted}`}
+                  style={{ padding: "10px 24px", borderRadius: 10, border: "none", background: "linear-gradient(135deg, #3B82F6, #06B6D4)", color: "#fff", cursor: "pointer", fontFamily: "'Outfit', sans-serif", fontWeight: 600, textDecoration: "none", display: "inline-block" }}>
                   Cek Status
-                </button>
-              </div>
+                </a>              </div>
             </div>
           )}
 
