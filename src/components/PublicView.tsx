@@ -151,6 +151,13 @@ export default function PublicView() {
             }}>
             Kirim Tiket
           </button>
+
+          {/* ← TAMBAHKAN INI */}
+          <a href="/panduan"
+            style={{ padding: "8px 18px", borderRadius: 30, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)", color: "#94A3B8", textDecoration: "none", fontSize: 13, fontWeight: 500, display: "inline-flex", alignItems: "center", gap: 4 }}>
+            📖 Panduan
+          </a>
+
           <a href="/cek-status"
             style={{
               padding: "8px 22px", borderRadius: 30, border: "none", cursor: "pointer", fontFamily: "'Outfit', sans-serif", fontWeight: 600, fontSize: 14,
