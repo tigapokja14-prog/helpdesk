@@ -394,3 +394,56 @@ export async function deleteRepliesByTicketId(ticketId: string): Promise<void> {
     });
   }
 }
+
+// ─── Simpan OTP sementara (di memory, reset saat server restart) ──
+const otpStore = new Map<string, { otp: string; email: string; expires: number }>();
+
+export function saveOtp(ticketId: string, email: string, otp: string): void {
+  otpStore.set(ticketId, {
+    otp,
+    email,
+    expires: Date.now() + 10 * 60 * 1000, // expired 10 menit
+  });
+}
+
+export function verifyOtp(ticketId: string, email: string, otp: string): boolean {
+  const data = otpStore.get(ticketId);
+  if (!data) return false;
+  if (Date.now() > data.expires) { otpStore.delete(ticketId); return false; }
+  if (data.email !== email || data.otp !== otp) return false;
+  otpStore.delete(ticketId); // hapus setelah berhasil
+  return true;
+}
+
+// ─── Update status oleh user ──────────────────────────────────
+export async function updateTicketStatusByUser(
+  id: string,
+  status: string
+): Promise<void> {
+  const sheets = getSheets();
+  const validStatuses = ['Selesai', 'Butuh Tindak Lanjut'];
+  if (!validStatuses.includes(status)) {
+    throw new Error('Status tidak valid');
+  }
+
+  const res = await sheets.spreadsheets.values.get({
+    spreadsheetId: SHEET_ID,
+    range: 'Tiket!A:A',
+  });
+
+  const rows = res.data.values || [];
+  const rowIndex = rows.findIndex(r => r[0] === id);
+  if (rowIndex === -1) throw new Error('Tiket tidak ditemukan');
+
+  const sheetRow = rowIndex + 1;
+  await sheets.spreadsheets.values.batchUpdate({
+    spreadsheetId: SHEET_ID,
+    requestBody: {
+      valueInputOption: 'RAW',
+      data: [
+        { range: `Tiket!I${sheetRow}`, values: [[status]] },
+        { range: `Tiket!M${sheetRow}`, values: [[new Date().toISOString()]] },
+      ],
+    },
+  });
+}

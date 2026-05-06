@@ -1,11 +1,11 @@
 import nodemailer from 'nodemailer';
 
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.GMAIL_USER,
-        pass: process.env.GMAIL_APP_PASSWORD,
-    },
+  service: 'gmail',
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_APP_PASSWORD,
+  },
 });
 
 const FROM = `HelpDeskID <${process.env.GMAIL_USER}>`;
@@ -13,18 +13,18 @@ const ADMIN = process.env.EMAIL_ADMIN || process.env.GMAIL_USER || '';
 
 // ─── Email konfirmasi ke pengirim tiket ──────────────────────
 export async function sendTicketConfirmation(ticket: {
-    id: string;
-    name: string;
-    email: string;
-    subject: string;
-    jenisLaporan: string;
-    category: string;
+  id: string;
+  name: string;
+  email: string;
+  subject: string;
+  jenisLaporan: string;
+  category: string;
 }) {
-    await transporter.sendMail({
-        from: FROM,
-        to: ticket.email,
-        subject: `[${ticket.id}] Tiket Anda Berhasil Dikirim`,
-        html: `
+  await transporter.sendMail({
+    from: FROM,
+    to: ticket.email,
+    subject: `[${ticket.id}] Tiket Anda Berhasil Dikirim`,
+    html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #f8fafc; padding: 32px; border-radius: 12px;">
         <div style="background: linear-gradient(135deg, #3B82F6, #06B6D4); padding: 24px; border-radius: 10px; text-align: center; margin-bottom: 24px;">
           <h1 style="color: white; margin: 0; font-size: 24px;">HelpDeskID</h1>
@@ -77,27 +77,27 @@ export async function sendTicketConfirmation(ticket: {
         </p>
       </div>
     `,
-    });
+  });
 }
 
 // ─── Email notifikasi ke admin ────────────────────────────────
 export async function sendAdminNotification(ticket: {
-    id: string;
-    name: string;
-    email: string;
-    subject: string;
-    peran: string;
-    jenisLaporan: string;
-    category: string;
-    description: string;
+  id: string;
+  name: string;
+  email: string;
+  subject: string;
+  peran: string;
+  jenisLaporan: string;
+  category: string;
+  description: string;
 }) {
-    if (!ADMIN) return;
+  if (!ADMIN) return;
 
-    await transporter.sendMail({
-        from: FROM,
-        to: ADMIN,
-        subject: `[Tiket Baru] ${ticket.id} — ${ticket.subject}`,
-        html: `
+  await transporter.sendMail({
+    from: FROM,
+    to: ADMIN,
+    subject: `[Tiket Baru] ${ticket.id} — ${ticket.subject}`,
+    html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
         <h2 style="color: #1E293B; margin: 0 0 16px;">🔔 Tiket Baru Masuk</h2>
 
@@ -147,23 +147,23 @@ export async function sendAdminNotification(ticket: {
         </a>
       </div>
     `,
-    });
+  });
 }
 
 // ─── Email balasan ke pengirim tiket ─────────────────────────
 export async function sendReplyNotification(data: {
-    ticketId: string;
-    ticketSubject: string;
-    toName: string;
-    toEmail: string;
-    replyText: string;
-    fromName: string;
+  ticketId: string;
+  ticketSubject: string;
+  toName: string;
+  toEmail: string;
+  replyText: string;
+  fromName: string;
 }) {
-    await transporter.sendMail({
-        from: FROM,
-        to: data.toEmail,
-        subject: `[${data.ticketId}] Ada balasan untuk laporan Anda`,
-        html: `
+  await transporter.sendMail({
+    from: FROM,
+    to: data.toEmail,
+    subject: `[${data.ticketId}] Ada balasan untuk laporan Anda`,
+    html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #f8fafc; padding: 32px; border-radius: 12px;">
         <div style="background: linear-gradient(135deg, #3B82F6, #06B6D4); padding: 24px; border-radius: 10px; text-align: center; margin-bottom: 24px;">
           <h1 style="color: white; margin: 0; font-size: 24px;">HelpDeskID</h1>
@@ -190,5 +190,92 @@ export async function sendReplyNotification(data: {
         </p>
       </div>
     `,
-    });
+  });
+}
+
+// ─── Email OTP untuk verifikasi user ─────────────────────────
+export async function sendOtpEmail(data: {
+  toName: string;
+  toEmail: string;
+  ticketId: string;
+  otp: string;
+}) {
+  await transporter.sendMail({
+    from: FROM,
+    to: data.toEmail,
+    subject: `[${data.ticketId}] Kode Verifikasi OTP Anda`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #f8fafc; padding: 32px; border-radius: 12px;">
+        <div style="background: linear-gradient(135deg, #3B82F6, #06B6D4); padding: 24px; border-radius: 10px; text-align: center; margin-bottom: 24px;">
+          <h1 style="color: white; margin: 0; font-size: 24px;">HelpDeskID</h1>
+        </div>
+
+        <h2 style="color: #1E293B; margin: 0 0 8px;">Kode Verifikasi OTP 🔐</h2>
+        <p style="color: #64748B;">Halo <strong>${data.toName}</strong>, gunakan kode berikut untuk memverifikasi identitas Anda.</p>
+
+        <div style="background: white; border: 2px solid #3B82F6; border-radius: 16px; padding: 32px; text-align: center; margin: 24px 0;">
+          <div style="font-size: 12px; color: #64748B; margin-bottom: 8px; letter-spacing: 2px; text-transform: uppercase;">Kode OTP</div>
+          <div style="font-size: 48px; font-weight: 800; letter-spacing: 12px; color: #3B82F6;">${data.otp}</div>
+          <div style="font-size: 13px; color: #94A3B8; margin-top: 12px;">⏱️ Berlaku selama <strong>10 menit</strong></div>
+        </div>
+
+        <div style="background: #FFF3CD; border: 1px solid #FFC107; border-radius: 10px; padding: 14px; margin-bottom: 20px;">
+          <p style="margin: 0; color: #856404; font-size: 13px;">
+            ⚠️ Jangan bagikan kode ini kepada siapapun. Tim kami tidak pernah meminta kode OTP Anda.
+          </p>
+        </div>
+
+        <p style="color: #94A3B8; font-size: 12px; text-align: center;">
+          Untuk tiket: <strong>${data.ticketId}</strong><br/>
+          Email ini dikirim otomatis. Jangan membalas email ini.
+        </p>
+      </div>
+    `,
+  });
+}
+
+// ─── Notifikasi ke admin saat user membalas ───────────────────
+export async function sendAdminNewReplyNotification(data: {
+  ticketId: string;
+  ticketSubject: string;
+  fromName: string;
+  fromEmail: string;
+  replyText: string;
+}) {
+  const adminEmail = process.env.EMAIL_ADMIN || process.env.GMAIL_USER || '';
+  if (!adminEmail) return;
+
+  await transporter.sendMail({
+    from: FROM,
+    to: adminEmail,
+    subject: `[Balasan User] ${data.ticketId} — ${data.ticketSubject}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
+        <h2 style="color: #1E293B; margin: 0 0 16px;">💬 User Membalas Tiket</h2>
+
+        <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 20px; margin-bottom: 16px;">
+          <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+              <td style="padding: 8px 0; color: #64748B; font-size: 14px; width: 120px;">ID Tiket</td>
+              <td style="padding: 8px 0; font-weight: 700; color: #3B82F6;">${data.ticketId}</td>
+            </tr>
+            <tr style="border-top: 1px solid #F1F5F9;">
+              <td style="padding: 8px 0; color: #64748B; font-size: 14px;">Dari</td>
+              <td style="padding: 8px 0; font-weight: 600;">${data.fromName} (${data.fromEmail})</td>
+            </tr>
+          </table>
+        </div>
+
+        <div style="background: #EFF6FF; border-left: 4px solid #3B82F6; border-radius: 0 10px 10px 0; padding: 16px 20px; margin-bottom: 20px;">
+          <div style="font-size: 12px; color: #3B82F6; font-weight: 700; margin-bottom: 8px;">PESAN USER</div>
+          <p style="margin: 0; color: #1E293B; font-size: 14px; line-height: 1.6;">${data.replyText}</p>
+        </div>
+
+        <a href="${process.env.PUBLIC_APP_URL || ''}/admin"
+          style="display: inline-block; padding: 12px 28px; background: linear-gradient(135deg, #3B82F6, #06B6D4); color: white; text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 14px;">
+          Buka Panel Admin →
+        </a>
+      </div>
+    `,
+  });
 }
