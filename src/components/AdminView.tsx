@@ -557,13 +557,10 @@ function Dashboard({ token, nama, role, onLogout }: { token: string; nama: strin
   const sidebarContent = (
     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
       {/* Logo */}
-      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20, padding: "0 8px" }}>
-        <div style={{ width: 34, height: 34, background: "linear-gradient(135deg, #3B82F6, #06B6D4)", borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" /></svg>
-        </div>
-        <span style={{ fontWeight: 700, fontSize: 17 }}>HelpDesk<span style={{ color: "#38BDF8" }}>ID</span></span>
+      <div style={{ marginBottom: 20, padding: "0 4px" }}>
+        <img src="/logo_b.png" alt="Kemendikdasmen - Unit Layanan Terpadu"
+          style={{ width: "100%", maxHeight: 44, objectFit: "contain", objectPosition: "left" }} />
       </div>
-
       {/* Info Admin */}
       <div style={{ background: "rgba(56,189,248,0.08)", border: "1px solid rgba(56,189,248,0.15)", borderRadius: 10, padding: "10px 12px", marginBottom: 20 }}>
         <div style={{ fontSize: 13, fontWeight: 700, color: "#E2E8F0" }}>{nama}</div>

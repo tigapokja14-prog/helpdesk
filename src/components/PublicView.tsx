@@ -136,11 +136,9 @@ export default function PublicView() {
     <div style={{ minHeight: "100vh", background: "linear-gradient(135deg, #0F172A 0%, #1E3A5F 50%, #0F172A 100%)", fontFamily: "'Outfit', sans-serif", color: "#E2E8F0" }}>
       {/* NAV */}
       <nav style={{ padding: "20px 40px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{ width: 36, height: 36, background: "linear-gradient(135deg, #3B82F6, #06B6D4)", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" /></svg>
-          </div>
-          <span style={{ fontWeight: 700, fontSize: 20, color: "#fff" }}>BPMP JAKARTA<span style={{ color: "#38BDF8" }}> | Unit Layanan Terpadu</span></span>
+        <div style={{ display: "flex", alignItems: "center" }}>
+          <img src="/logo_b.png" alt="Kemendikdasmen - Unit Layanan Terpadu"
+            style={{ height: 48, objectFit: "contain" }} />
         </div>
         <div style={{ display: "flex", gap: 8 }}>
           <button onClick={() => { setTab("kirim"); setSubmitted(null); setError(""); }}

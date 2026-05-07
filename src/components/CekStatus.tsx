@@ -185,11 +185,9 @@ export default function CekStatus() {
 
             {/* NAV */}
             <nav style={{ padding: "16px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid rgba(255,255,255,0.08)", position: "sticky", top: 0, zIndex: 10, background: "rgba(15,23,42,0.9)", backdropFilter: "blur(12px)" }}>
-                <a href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
-                    <div style={{ width: 36, height: 36, background: "linear-gradient(135deg, #3B82F6, #06B6D4)", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" /></svg>
-                    </div>
-                    <span style={{ fontWeight: 700, fontSize: 18, color: "#fff" }}>HelpDesk<span style={{ color: "#38BDF8" }}>ID</span></span>
+                <a href="/" style={{ display: "flex", alignItems: "center", textDecoration: "none" }}>
+                    <img src="/logo_b.png" alt="Kemendikdasmen - Unit Layanan Terpadu"
+                        style={{ height: 44, objectFit: "contain" }} />
                 </a>
                 <a href="/" style={{ padding: "8px 18px", borderRadius: 30, border: "1px solid rgba(255,255,255,0.15)", background: "rgba(255,255,255,0.06)", color: "#94A3B8", textDecoration: "none", fontSize: 14, fontWeight: 500 }}>
                     ← Kirim Tiket
