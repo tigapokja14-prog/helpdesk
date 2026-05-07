@@ -1,31 +1,26 @@
 import { useState, useRef } from "react";
 
-const ADMIN_TOKEN = import.meta.env.PUBLIC_ADMIN_TOKEN || "";
+const PRIORITY_COLOR: Record<string, string> = {
+  "Tinggi": "#E65100",
+  "Sedang": "#F59E0B",
+  "Rendah": "#2E7D32",
+};
 
 const STATUS_COLOR: Record<string, { bg: string; text: string; dot: string }> = {
-  "Menunggu": { bg: "#FFF3CD", text: "#856404", dot: "#FFC107" },
-  "Dalam Proses": { bg: "#CCE5FF", text: "#004085", dot: "#0D6EFD" },
-  "Selesai": { bg: "#D4EDDA", text: "#155724", dot: "#28A745" },
-  "Ditolak": { bg: "#F8D7DA", text: "#721C24", dot: "#DC3545" },
+  "Menunggu": { bg: "#FFF3E0", text: "#E65100", dot: "#FF6D00" },
+  "Dalam Proses": { bg: "#E3F2FD", text: "#1565C0", dot: "#1976D2" },
+  "Selesai": { bg: "#E8F5E9", text: "#2E7D32", dot: "#388E3C" },
+  "Ditolak": { bg: "#FFEBEE", text: "#C62828", dot: "#D32F2F" },
+  "Butuh Tindak Lanjut": { bg: "#F3E5F5", text: "#6A1B9A", dot: "#7B1FA2" },
 };
 
-const PRIORITY_COLOR: Record<string, string> = {
-  "Tinggi": "#EF4444",
-  "Sedang": "#F59E0B",
-  "Rendah": "#10B981",
-};
-
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString("id-ID", {
-    day: "2-digit", month: "short", year: "numeric",
-    hour: "2-digit", minute: "2-digit",
-  });
-}
+const formatDate = (iso: string) =>
+  iso ? new Date(iso).toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "-";
 
 function StatusBadge({ status }: { status: string }) {
-  const c = STATUS_COLOR[status] || { bg: "#eee", text: "#333", dot: "#999" };
+  const c = STATUS_COLOR[status] || { bg: "#F5F5F5", text: "#616161", dot: "#9E9E9E" };
   return (
-    <span style={{ background: c.bg, color: c.text, borderRadius: 20, padding: "3px 12px", fontSize: 12, fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 6 }}>
+    <span style={{ background: c.bg, color: c.text, borderRadius: 20, padding: "4px 14px", fontSize: 13, fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 6 }}>
       <span style={{ width: 7, height: 7, borderRadius: "50%", background: c.dot, display: "inline-block" }} />
       {status}
     </span>
@@ -35,14 +30,9 @@ function StatusBadge({ status }: { status: string }) {
 export default function PublicView() {
   const [tab, setTab] = useState<"kirim" | "cek">("kirim");
   const [form, setForm] = useState({
-    name: "",
-    email: "",
-    peran: "Guru/Dosen",
-    jenisLaporan: "Pertanyaan/Informasi",
-    category: "Umum",
-    subject: "",
-    description: "",
-    priority: "Sedang",
+    name: "", email: "", peran: "Guru/Dosen",
+    jenisLaporan: "Pertanyaan/Informasi", category: "Umum",
+    subject: "", description: "", priority: "Sedang",
   });
   const [file, setFile] = useState<File | null>(null);
   const [submitted, setSubmitted] = useState<string | null>(null);
@@ -54,69 +44,50 @@ export default function PublicView() {
   const [error, setError] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
-  // ─── Kirim tiket ke API ───────────────────────────────────
   const handleSubmit = async () => {
     setError("");
     if (!form.name || !form.email || !form.subject || !form.description) {
-      setError("Mohon lengkapi semua field yang wajib diisi.");
-      return;
+      setError("Mohon lengkapi semua field yang wajib diisi."); return;
     }
-
     setLoading(true);
     try {
-      // 1. Upload file langsung ke Cloudinary dari browser
       let fileUrl = "";
       if (file) {
         const fd = new FormData();
         fd.append("file", file);
         fd.append("upload_preset", "helpdesk_unsigned");
         fd.append("folder", "helpdesk-lampiran");
-
-        const cloudName = "dg5h79mpx";  // ← ganti dengan cloud name Anda
-        const uploadRes = await fetch(
-          `https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`,
-          { method: "POST", body: fd }
-        );
+        const cloudName = "dg5h79mpx";
+        const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`, { method: "POST", body: fd });
         const uploadData = await uploadRes.json();
         if (!uploadRes.ok) throw new Error(uploadData.error?.message || "Gagal upload file");
         fileUrl = uploadData.secure_url;
       }
-
-      // 2. Kirim data tiket ke server
       const res = await fetch("/api/tiket", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...form, attachment: fileUrl }),
       });
-
       const rawText = await res.text();
       const data = JSON.parse(rawText);
       if (res.ok) setSubmitted(data.id);
       else throw new Error(data.error || "Gagal mengirim tiket");
-
     } catch (err: any) {
       setError(err.message || "Terjadi kesalahan. Coba lagi.");
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   };
 
-  // ─── Cek status tiket dari API ────────────────────────────
   const handleTrack = async () => {
-    setTrackError("");
-    setTrackedTicket(null);
+    setTrackError(""); setTrackedTicket(null);
     if (!trackId.trim()) return;
     setLoading(true);
     try {
       const res = await fetch(`/api/tiket/${trackId.trim()}`);
       const data = await res.json();
       if (res.ok) setTrackedTicket(data);
-      else setTrackError(data.error || "Tiket tidak ditemukan.");
-    } catch {
-      setTrackError("Gagal menghubungi server. Coba lagi.");
-    } finally {
-      setLoading(false);
-    }
+      else setTrackError("Tiket tidak ditemukan. Pastikan ID tiket sudah benar.");
+    } catch { setTrackError("Gagal menghubungi server. Coba lagi."); }
+    finally { setLoading(false); }
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -126,40 +97,57 @@ export default function PublicView() {
   };
 
   const inputStyle: React.CSSProperties = {
-    width: "100%", padding: "11px 14px", borderRadius: 10,
-    border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.06)",
-    color: "#E2E8F0", fontSize: 14, fontFamily: "'Outfit', sans-serif",
-    boxSizing: "border-box", outline: "none",
+    width: "100%", padding: "10px 14px", borderRadius: 6,
+    border: "1.5px solid #E0E0E0", background: "#FAFAFA",
+    color: "#1A1A2E", fontSize: 14, fontFamily: "'Plus Jakarta Sans', sans-serif",
+    boxSizing: "border-box", outline: "none", transition: "border-color 0.2s",
+  };
+
+  const labelStyle: React.CSSProperties = {
+    display: "block", fontSize: 13, color: "#455A64",
+    marginBottom: 6, fontWeight: 600,
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: "linear-gradient(135deg, #0F172A 0%, #1E3A5F 50%, #0F172A 100%)", fontFamily: "'Outfit', sans-serif", color: "#E2E8F0" }}>
-      {/* NAV */}
-      <nav style={{ padding: "20px 40px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
-        <div style={{ display: "flex", alignItems: "center" }}>
-          <img src="/logo_b.png" alt="Kemendikdasmen - Unit Layanan Terpadu"
-            style={{ height: 48, objectFit: "contain" }} />
-        </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          <button onClick={() => { setTab("kirim"); setSubmitted(null); setError(""); }}
-            style={{
-              padding: "8px 22px", borderRadius: 30, border: "none", cursor: "pointer", fontFamily: "'Outfit', sans-serif", fontWeight: 600, fontSize: 14,
-              background: tab === "kirim" ? "linear-gradient(135deg, #3B82F6, #06B6D4)" : "rgba(255,255,255,0.08)",
-              color: tab === "kirim" ? "#fff" : "#94A3B8"
-            }}>
-            Kirim Tiket
-          </button>
+    <div style={{ minHeight: "100vh", background: "#F5F7FA", fontFamily: "'Plus Jakarta Sans', sans-serif", color: "#1A1A2E" }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        input::placeholder, textarea::placeholder, select { color: #90A4AE; }
+        input:focus, textarea:focus, select:focus { border-color: #1565C0 !important; background: #fff !important; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-up { animation: fadeUp 0.4s ease; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #CFD8DC; border-radius: 3px; }
+      `}</style>
 
-          {/* ← TAMBAHKAN INI */}
+      {/* TOP BAR */}
+      <div style={{ background: "#1565C0", color: "#fff", padding: "6px 40px", fontSize: 12, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <span>BPMP DKI Jakarta — Unit Layanan Terpadu</span>
+        <span>📞 Layanan: Senin–Jumat, 08.00–17.00 WIB</span>
+      </div>
+
+      {/* NAVBAR */}
+      <nav style={{ background: "#fff", borderBottom: "1px solid #E0E0E0", padding: "12px 40px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100, boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
+        <a href="/" style={{ display: "flex", alignItems: "center", textDecoration: "none" }}>
+          <img src="/logo_b.png" alt="Kemendikdasmen ULT" style={{ height: 44, objectFit: "contain" }} />
+        </a>
+        <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
           <a href="/panduan"
-            style={{ padding: "8px 18px", borderRadius: 30, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)", color: "#94A3B8", textDecoration: "none", fontSize: 13, fontWeight: 500, display: "inline-flex", alignItems: "center", gap: 4 }}>
+            style={{ padding: "8px 16px", borderRadius: 6, border: "1.5px solid #E0E0E0", background: "#E65100", color: "#ffffffff", textDecoration: "none", fontSize: 13, fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 6 }}>
             📖 Panduan
           </a>
-
+          <button onClick={() => { setTab("kirim"); setSubmitted(null); setError(""); }}
+            style={{
+              padding: "8px 18px", borderRadius: 6, border: "1.5px solid #1565C0", cursor: "pointer", fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 700, fontSize: 13, transition: "all 0.2s",
+              background: tab === "kirim" ? "#1565C0" : "transparent", color: tab === "kirim" ? "#fff" : "#1565C0"
+            }}>
+            Kirim Laporan
+          </button>
           <a href="/cek-status"
             style={{
-              padding: "8px 22px", borderRadius: 30, border: "none", cursor: "pointer", fontFamily: "'Outfit', sans-serif", fontWeight: 600, fontSize: 14,
-              background: "rgba(255,255,255,0.08)", color: "#94A3B8", textDecoration: "none", display: "inline-flex", alignItems: "center"
+              padding: "8px 18px", borderRadius: 6, border: "1.5px solid #E65100", cursor: "pointer", fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 700, fontSize: 13, textDecoration: "none", display: "inline-flex", alignItems: "center",
+              background: "#E65100", color: "#fff"
             }}>
             Cek Status
           </a>
@@ -167,288 +155,353 @@ export default function PublicView() {
       </nav>
 
       {/* HERO */}
-      <div style={{ textAlign: "center", padding: "60px 20px 40px" }}>
-        <h1 style={{ fontSize: "clamp(32px, 5vw, 52px)", fontWeight: 800, margin: "0 0 16px", lineHeight: 1.1 }}>
-          Ada yang bisa kami<br />
-          <span style={{ background: "linear-gradient(90deg, #38BDF8, #818CF8)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>bantu?</span>
-        </h1>
-        <p style={{ color: "#94A3B8", fontSize: 17, maxWidth: 500, margin: "0 auto" }}>Kirim tiket bantuan atau cek status tiket Anda dengan cepat dan mudah.</p>
+      <div style={{ background: "linear-gradient(135deg, #1565C0 0%, #1976D2 60%, #0288D1 100%)", color: "#fff", padding: "56px 40px 64px" }}>
+        <div style={{ maxWidth: 860, margin: "0 auto", textAlign: "center" }}>
+          <h1 style={{ fontSize: "clamp(28px, 4vw, 46px)", fontWeight: 800, lineHeight: 1.2, marginBottom: 16 }}>
+            Ada yang bisa kami<br />
+            <span style={{ color: "#FFB300" }}>Bantu ?</span>
+          </h1>
+          <p style={{ textAlign: "center", fontSize: 16, color: "rgba(255,255,255,0.85)", lineHeight: 1.7, marginBottom: 32 }}>
+            Sampaikan pertanyaan, permintaan, keluhan, atau aspirasi Anda kepada kami. Tim kami siap membantu.
+          </p>
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", justifyContent: "center", width: "100%" }}>
+            {[
+              { icon: "⏱️", label: "Respons 1×24 Jam" },
+              { icon: "🔒", label: "Data Aman & Terlindungi" },
+              { icon: "📧", label: "Notifikasi via Email" },
+            ].map(b => (
+              <div key={b.label} style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(255,255,255,0.12)", borderRadius: 8, padding: "8px 16px", fontSize: 13, fontWeight: 600 }}>
+                {b.icon} {b.label}
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
-      {/* CARD */}
-      <div style={{ maxWidth: 680, margin: "0 auto 60px", padding: "0 20px" }}>
-        <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 24, padding: "40px", backdropFilter: "blur(20px)" }}>
-
-          {/* ── KIRIM TIKET ── */}
-          <div style={{ display: "grid", gap: 16 }}>
-
-            {/* Nama & Email */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-              <div>
-                <label style={{ display: "block", fontSize: 13, color: "#94A3B8", marginBottom: 6, fontWeight: 500 }}>Nama Lengkap *</label>
-                <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-                  placeholder="Masukkan nama lengkap" style={inputStyle} />
-              </div>
-              <div>
-                <label style={{ display: "block", fontSize: 13, color: "#94A3B8", marginBottom: 6, fontWeight: 500 }}>Alamat Email *</label>
-                <input type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
-                  placeholder="contoh@email.com" style={inputStyle} />
-              </div>
+      {/* STATS BAR */}
+      <div style={{ background: "#fff", borderBottom: "1px solid #E0E0E0", padding: "16px 40px" }}>
+        <div style={{ maxWidth: 860, margin: "0 auto", display: "flex", gap: 40, justifyContent: "center", flexWrap: "wrap" }}>
+          {[
+            { label: "Jenis Layanan", value: "5" },
+            { label: "Kategori Laporan", value: "4" },
+            { label: "Jam Layanan", value: "9 Jam/Hari" },
+            { label: "Waktu Respons", value: "≤ 24 Jam" },
+          ].map(s => (
+            <div key={s.label} style={{ textAlign: "center" }}>
+              <div style={{ fontSize: 22, fontWeight: 800, color: "#1565C0" }}>{s.value}</div>
+              <div style={{ fontSize: 12, color: "#90A4AE", fontWeight: 500 }}>{s.label}</div>
             </div>
+          ))}
+        </div>
+      </div>
 
-            {/* Peran */}
-            <div>
-              <label style={{ display: "block", fontSize: 13, color: "#94A3B8", marginBottom: 6, fontWeight: 500 }}>Peran *</label>
-              <select value={form.peran} onChange={e => setForm(f => ({ ...f, peran: e.target.value }))}
-                style={{ ...inputStyle, background: "#1E293B" }}>
-                {["Guru/Dosen", "Orang Tua Murid/Wali", "Operator Sekolah", "Mahasiswa", "Murid", "Yayasan", "Pribadi", "Lainnya"].map(o => (
-                  <option key={o}>{o}</option>
-                ))}
-              </select>
-            </div>
+      {/* MAIN CONTENT */}
+      <div style={{ maxWidth: 860, margin: "0 auto", padding: "40px 20px 80px" }}>
 
-            {/* Jenis Laporan & Kategori */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-              <div>
-                <label style={{ display: "block", fontSize: 13, color: "#94A3B8", marginBottom: 6, fontWeight: 500 }}>Jenis Laporan *</label>
-                <select value={form.jenisLaporan} onChange={e => setForm(f => ({ ...f, jenisLaporan: e.target.value }))}
-                  style={{ ...inputStyle, background: "#1E293B" }}>
-                  {["Pertanyaan/Informasi", "Permintaan", "Keluhan/Kendala", "Aspirasi/Saran", "Pengaduan"].map(o => (
-                    <option key={o}>{o}</option>
-                  ))}
-                </select>
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-                <div>
-                  <label style={{ display: "block", fontSize: 13, color: "#94A3B8", marginBottom: 6, fontWeight: 500 }}>Kategori *</label>
-                  <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
-                    style={{ ...inputStyle, background: "#1E293B" }}>
-                    {["Lembaga/Fasilitas", "Pendidikan", "Umum", "Lainnya"].map(o => (
-                      <option key={o}>{o}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label style={{ display: "block", fontSize: 13, color: "#94A3B8", marginBottom: 6, fontWeight: 500 }}>Prioritas *</label>
-                  <select value={form.priority} onChange={e => setForm(f => ({ ...f, priority: e.target.value }))}
-                    style={{ ...inputStyle, background: "#1E293B" }}>
-                    {[
-                      { value: "Rendah", label: "🟢 Rendah — Tidak mendesak" },
-                      { value: "Sedang", label: "🟡 Sedang — Perlu ditangani" },
-                      { value: "Tinggi", label: "🔴 Tinggi — Mendesak" },
-                    ].map(o => (
-                      <option key={o.value} value={o.value}>{o.label}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            </div>
+        {/* TAB BUTTONS */}
+        <div style={{ display: "flex", gap: 0, marginBottom: 28, background: "#fff", borderRadius: 8, padding: 4, border: "1.5px solid #E0E0E0", width: "fit-content" }}>
+          {[
+            { id: "kirim", label: "✉️ Kirim Laporan Baru" },
+            { id: "cek", label: "🔍 Cek Status Laporan" },
+          ].map(t => (
+            <button key={t.id} onClick={() => { setTab(t.id as any); setSubmitted(null); setTrackedTicket(null); setTrackError(""); setError(""); }}
+              style={{
+                padding: "10px 24px", borderRadius: 6, border: "none", cursor: "pointer", fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 700, fontSize: 14, transition: "all 0.2s",
+                background: tab === t.id ? "#1565C0" : "transparent",
+                color: tab === t.id ? "#fff" : "#90A4AE"
+              }}>
+              {t.label}
+            </button>
+          ))}
+        </div>
 
-            {/* Subjek */}
-            <div>
-              <label style={{ display: "block", fontSize: 13, color: "#94A3B8", marginBottom: 6, fontWeight: 500 }}>Subjek/Judul Laporan *</label>
-              <input value={form.subject} onChange={e => setForm(f => ({ ...f, subject: e.target.value }))}
-                placeholder="Tuliskan judul laporan Anda" style={inputStyle} />
-            </div>
+        {/* CARD */}
+        <div style={{ background: "#fff", borderRadius: 12, border: "1.5px solid #E0E0E0", boxShadow: "0 4px 20px rgba(0,0,0,0.06)", overflow: "hidden" }}>
 
-            {/* Deskripsi */}
-            <div>
-              <label style={{ display: "block", fontSize: 13, color: "#94A3B8", marginBottom: 6, fontWeight: 500 }}>Deskripsi Masalah *</label>
-              <textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
-                placeholder="Jelaskan masalah atau laporan Anda secara detail..." rows={5}
-                style={{ ...inputStyle, resize: "vertical" }} />
-            </div>
+          {/* CARD HEADER */}
+          <div style={{ background: tab === "kirim" ? "#1565C0" : "#E65100", padding: "20px 28px" }}>
+            <h2 style={{ color: "#fff", fontSize: 18, fontWeight: 800, margin: 0 }}>
+              {tab === "kirim" ? "✉️ Form Pengiriman Laporan" : "🔍 Cek Status Laporan"}
+            </h2>
+            <p style={{ color: "rgba(255,255,255,0.8)", fontSize: 13, margin: "4px 0 0" }}>
+              {tab === "kirim"
+                ? "Lengkapi formulir berikut. Field bertanda (*) wajib diisi."
+                : "Masukkan ID Laporan yang Anda terima melalui email konfirmasi."}
+            </p>
+          </div>
 
-            {/* Upload Lampiran */}
-            <div>
-              <label style={{ display: "block", fontSize: 13, color: "#94A3B8", marginBottom: 6, fontWeight: 500 }}>Lampiran (opsional)</label>
-              <div onDragOver={e => { e.preventDefault(); setDragging(true); }}
-                onDragLeave={() => setDragging(false)}
-                onDrop={handleDrop}
-                onClick={() => fileRef.current?.click()}
-                style={{ border: `2px dashed ${dragging ? "#38BDF8" : "rgba(255,255,255,0.15)"}`, borderRadius: 12, padding: "28px 20px", textAlign: "center", cursor: "pointer", background: dragging ? "rgba(56,189,248,0.05)" : "transparent", transition: "all 0.2s" }}>
-                <input ref={fileRef} type="file" style={{ display: "none" }}
-                  accept=".png,.jpg,.jpeg,.gif,.pdf,.doc,.docx"
-                  onChange={e => setFile(e.target.files?.[0] || null)} />
-                {file ? (
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
-                    <span style={{ fontSize: 24 }}>📎</span>
-                    <div style={{ textAlign: "left" }}>
-                      <div style={{ fontSize: 14, fontWeight: 600, color: "#38BDF8" }}>{file.name}</div>
-                      <div style={{ fontSize: 12, color: "#64748B" }}>{(file.size / 1024).toFixed(1)} KB</div>
-                    </div>
-                    <button onClick={e => { e.stopPropagation(); setFile(null); }}
-                      style={{ background: "rgba(239,68,68,0.2)", border: "none", color: "#EF4444", borderRadius: 6, padding: "4px 8px", cursor: "pointer", fontSize: 12 }}>
-                      Hapus
-                    </button>
+          <div style={{ padding: "28px" }}>
+
+            {/* ── KIRIM TIKET ── */}
+            {tab === "kirim" && !submitted && (
+              <div className="fade-up">
+                {error && (
+                  <div style={{ marginBottom: 16, padding: "12px 16px", borderRadius: 8, background: "#FFEBEE", border: "1px solid #FFCDD2", color: "#C62828", fontSize: 13 }}>
+                    ⚠️ {error}
                   </div>
-                ) : (
-                  <>
-                    <div style={{ fontSize: 32, marginBottom: 8 }}>☁️</div>
-                    <div style={{ fontSize: 14, color: "#94A3B8" }}>Drag & drop atau <span style={{ color: "#38BDF8" }}>klik untuk pilih</span></div>
-                    <div style={{ fontSize: 12, color: "#475569", marginTop: 4 }}>PNG, JPG, PDF, DOC — maks. 10MB</div>
-                  </>
+                )}
+                <div style={{ display: "grid", gap: 16 }}>
+
+                  {/* Nama & Email */}
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                    <div>
+                      <label style={labelStyle}>Nama Lengkap *</label>
+                      <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+                        placeholder="Masukkan nama lengkap" style={inputStyle} />
+                    </div>
+                    <div>
+                      <label style={labelStyle}>Alamat Email *</label>
+                      <input type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+                        placeholder="contoh@email.com" style={inputStyle} />
+                    </div>
+                  </div>
+
+                  {/* Peran */}
+                  <div>
+                    <label style={labelStyle}>Peran *</label>
+                    <select value={form.peran} onChange={e => setForm(f => ({ ...f, peran: e.target.value }))}
+                      style={{ ...inputStyle, background: "#FAFAFA" }}>
+                      {["Guru/Dosen", "Orang Tua Murid/Wali", "Operator Sekolah", "Mahasiswa", "Murid", "Yayasan", "Pribadi", "Lainnya"].map(o => <option key={o}>{o}</option>)}
+                    </select>
+                  </div>
+
+                  {/* Jenis & Kategori */}
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                    <div>
+                      <label style={labelStyle}>Jenis Laporan *</label>
+                      <select value={form.jenisLaporan} onChange={e => setForm(f => ({ ...f, jenisLaporan: e.target.value }))}
+                        style={{ ...inputStyle, background: "#FAFAFA" }}>
+                        {["Pertanyaan/Informasi", "Permintaan", "Keluhan/Kendala", "Aspirasi/Saran", "Pengaduan"].map(o => <option key={o}>{o}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label style={labelStyle}>Kategori *</label>
+                      <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
+                        style={{ ...inputStyle, background: "#FAFAFA" }}>
+                        {["Lembaga/Fasilitas", "Pendidikan", "Umum", "Lainnya"].map(o => <option key={o}>{o}</option>)}
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Subjek & Prioritas */}
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 16 }}>
+                    <div>
+                      <label style={labelStyle}>Subjek/Judul Laporan *</label>
+                      <input value={form.subject} onChange={e => setForm(f => ({ ...f, subject: e.target.value }))}
+                        placeholder="Tuliskan judul singkat laporan Anda" style={inputStyle} />
+                    </div>
+                    <div style={{ minWidth: 150 }}>
+                      <label style={labelStyle}>Prioritas *</label>
+                      <select value={form.priority} onChange={e => setForm(f => ({ ...f, priority: e.target.value }))}
+                        style={{ ...inputStyle, background: "#FAFAFA" }}>
+                        {[{ v: "Rendah", l: "🟢 Rendah" }, { v: "Sedang", l: "🟡 Sedang" }, { v: "Tinggi", l: "🔴 Tinggi" }].map(o => <option key={o.v} value={o.v}>{o.l}</option>)}
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Deskripsi */}
+                  <div>
+                    <label style={labelStyle}>Deskripsi Masalah *</label>
+                    <textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+                      placeholder="Jelaskan laporan atau pertanyaan Anda secara lengkap dan jelas..." rows={5}
+                      style={{ ...inputStyle, resize: "vertical", lineHeight: 1.6 }} />
+                  </div>
+
+                  {/* Upload */}
+                  <div>
+                    <label style={labelStyle}>Lampiran (opsional)</label>
+                    <div onDragOver={e => { e.preventDefault(); setDragging(true); }}
+                      onDragLeave={() => setDragging(false)}
+                      onDrop={handleDrop}
+                      onClick={() => fileRef.current?.click()}
+                      style={{ border: `2px dashed ${dragging ? "#1565C0" : "#CFD8DC"}`, borderRadius: 8, padding: "24px 20px", textAlign: "center", cursor: "pointer", background: dragging ? "#E3F2FD" : "#FAFAFA", transition: "all 0.2s" }}>
+                      <input ref={fileRef} type="file" style={{ display: "none" }}
+                        accept=".png,.jpg,.jpeg,.gif,.pdf,.doc,.docx"
+                        onChange={e => setFile(e.target.files?.[0] || null)} />
+                      {file ? (
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
+                          <span style={{ fontSize: 24 }}>📎</span>
+                          <div style={{ textAlign: "left" }}>
+                            <div style={{ fontSize: 14, fontWeight: 600, color: "#1565C0" }}>{file.name}</div>
+                            <div style={{ fontSize: 12, color: "#90A4AE" }}>{(file.size / 1024).toFixed(1)} KB</div>
+                          </div>
+                          <button onClick={e => { e.stopPropagation(); setFile(null); }}
+                            style={{ background: "#FFEBEE", border: "none", color: "#C62828", borderRadius: 6, padding: "4px 10px", cursor: "pointer", fontSize: 12, fontWeight: 600 }}>
+                            Hapus
+                          </button>
+                        </div>
+                      ) : (
+                        <>
+                          <div style={{ fontSize: 28, marginBottom: 8 }}>☁️</div>
+                          <div style={{ fontSize: 14, color: "#455A64" }}>Drag & drop atau <span style={{ color: "#1565C0", fontWeight: 600 }}>klik untuk pilih file</span></div>
+                          <div style={{ fontSize: 12, color: "#90A4AE", marginTop: 4 }}>PNG, JPG, PDF, DOC — maks. 10MB</div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Submit */}
+                  <button onClick={handleSubmit} disabled={loading}
+                    style={{ padding: "13px", borderRadius: 8, border: "none", background: loading ? "#B0BEC5" : "#1565C0", color: "#fff", fontSize: 15, fontWeight: 700, cursor: loading ? "not-allowed" : "pointer", fontFamily: "'Plus Jakarta Sans', sans-serif", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                    {loading ? "Mengirim..." : "✉️ Kirim Laporan →"}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* ── SUKSES ── */}
+            {tab === "kirim" && submitted && (
+              <div className="fade-up" style={{ textAlign: "center", padding: "20px 0" }}>
+                <div style={{ width: 72, height: 72, background: "#E8F5E9", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px", fontSize: 36 }}>✅</div>
+                <h2 style={{ fontSize: 22, fontWeight: 800, marginBottom: 8, color: "#2E7D32" }}>Laporan Berhasil Dikirim!</h2>
+                <p style={{ color: "#607D8B", marginBottom: 24 }}>Tim kami akan segera menangani laporan Anda.</p>
+                <div style={{ background: "#E3F2FD", border: "1.5px solid #90CAF9", borderRadius: 10, padding: "20px 28px", display: "inline-block", marginBottom: 24 }}>
+                  <div style={{ fontSize: 12, color: "#1565C0", fontWeight: 700, textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>ID Laporan Anda</div>
+                  <div style={{ fontSize: 28, fontWeight: 800, color: "#1565C0", letterSpacing: 3 }}>{submitted}</div>
+                </div>
+                <p style={{ color: "#90A4AE", fontSize: 13, marginBottom: 24 }}>Simpan ID ini untuk mengecek status laporan Anda. Email konfirmasi telah dikirim.</p>
+                <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
+                  <button onClick={() => { setSubmitted(null); setForm({ name: "", email: "", peran: "Guru/Dosen", jenisLaporan: "Pertanyaan/Informasi", category: "Umum", subject: "", description: "", priority: "Sedang" }); setFile(null); }}
+                    style={{ padding: "10px 24px", borderRadius: 8, border: "1.5px solid #E0E0E0", background: "transparent", color: "#455A64", cursor: "pointer", fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 600, fontSize: 14 }}>
+                    + Kirim Laporan Baru
+                  </button>
+                  <a href={`/cek-status?id=${submitted}`}
+                    style={{ padding: "10px 24px", borderRadius: 8, border: "none", background: "#E65100", color: "#fff", cursor: "pointer", fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 700, fontSize: 14, textDecoration: "none" }}>
+                    🔍 Cek Status →
+                  </a>
+                </div>
+              </div>
+            )}
+
+            {/* ── CEK STATUS ── */}
+            {tab === "cek" && (
+              <div className="fade-up">
+                <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
+                  <input value={trackId} onChange={e => setTrackId(e.target.value)}
+                    placeholder="Contoh: TKT-ABC123"
+                    onKeyDown={e => e.key === "Enter" && handleTrack()}
+                    style={{ ...inputStyle, flex: 1, fontSize: 15, fontWeight: 600, letterSpacing: 1 }} />
+                  <button onClick={handleTrack} disabled={loading}
+                    style={{ padding: "10px 24px", borderRadius: 8, border: "none", background: loading ? "#B0BEC5" : "#E65100", color: "#fff", fontWeight: 700, cursor: loading ? "not-allowed" : "pointer", fontFamily: "'Plus Jakarta Sans', sans-serif", whiteSpace: "nowrap", fontSize: 14 }}>
+                    {loading ? "..." : "Cek →"}
+                  </button>
+                </div>
+
+                {trackError && (
+                  <div style={{ padding: "12px 16px", borderRadius: 8, background: "#FFEBEE", border: "1px solid #FFCDD2", color: "#C62828", fontSize: 13, marginBottom: 16 }}>
+                    ❌ {trackError}
+                  </div>
+                )}
+
+                {trackedTicket && (
+                  <div style={{ border: "1.5px solid #E0E0E0", borderRadius: 10, overflow: "hidden" }}>
+                    <div style={{ background: "#F5F7FA", padding: "18px 20px", borderBottom: "1px solid #E0E0E0" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 10 }}>
+                        <div>
+                          <div style={{ fontSize: 11, color: "#90A4AE", fontWeight: 700, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>ID Laporan</div>
+                          <div style={{ fontSize: 20, fontWeight: 800, color: "#1565C0", letterSpacing: 2 }}>{trackedTicket.id}</div>
+                          <div style={{ fontSize: 15, fontWeight: 700, color: "#1A1A2E", marginTop: 6 }}>{trackedTicket.subject}</div>
+                          <div style={{ fontSize: 12, color: "#90A4AE", marginTop: 4 }}>Dikirim {formatDate(trackedTicket.created)}</div>
+                        </div>
+                        <StatusBadge status={trackedTicket.status} />
+                      </div>
+                    </div>
+                    <div style={{ padding: "18px 20px" }}>
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 10, marginBottom: 16 }}>
+                        {[["Kategori", trackedTicket.category], ["Prioritas", trackedTicket.priority], ["Jenis", trackedTicket.jenisLaporan], ["Diperbarui", formatDate(trackedTicket.updated)]].map(([l, v]) => (
+                          <div key={l} style={{ background: "#F5F7FA", borderRadius: 8, padding: "10px 12px", border: "1px solid #E0E0E0" }}>
+                            <div style={{ fontSize: 11, color: "#90A4AE", fontWeight: 700, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>{l}</div>
+                            <div style={{ fontSize: 13, fontWeight: 600, color: l === "Prioritas" ? PRIORITY_COLOR[v] : "#1A1A2E" }}>{v}</div>
+                          </div>
+                        ))}
+                      </div>
+                      <div style={{ background: "#F5F7FA", borderRadius: 8, padding: "12px 14px", marginBottom: 16, border: "1px solid #E0E0E0" }}>
+                        <div style={{ fontSize: 11, color: "#90A4AE", fontWeight: 700, textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>Deskripsi</div>
+                        <div style={{ fontSize: 14, color: "#455A64", lineHeight: 1.7 }}>{trackedTicket.description}</div>
+                      </div>
+                      {trackedTicket.replies?.length > 0 ? (
+                        <div>
+                          <div style={{ fontSize: 12, color: "#90A4AE", fontWeight: 700, textTransform: "uppercase", letterSpacing: 1, marginBottom: 10 }}>Balasan Tim</div>
+                          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                            {trackedTicket.replies.map((r: any, i: number) => (
+                              <div key={i} style={{ background: "#E3F2FD", border: "1px solid #90CAF9", borderRadius: 8, padding: "10px 14px" }}>
+                                <div style={{ fontSize: 12, color: "#1565C0", fontWeight: 700, marginBottom: 4 }}>{r.from} · {formatDate(r.time)}</div>
+                                <div style={{ fontSize: 14, color: "#1A1A2E" }}>{r.text}</div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ) : (
+                        <div style={{ textAlign: "center", padding: "20px", background: "#F5F7FA", borderRadius: 8, border: "1px dashed #CFD8DC" }}>
+                          <div style={{ fontSize: 28, marginBottom: 8 }}>⏳</div>
+                          <div style={{ fontSize: 14, color: "#607D8B" }}>Belum ada balasan dari tim.</div>
+                          <div style={{ fontSize: 12, color: "#90A4AE", marginTop: 4 }}>Tim kami akan merespons dalam 1×24 jam kerja.</div>
+                        </div>
+                      )}
+                      <div style={{ marginTop: 16, textAlign: "center" }}>
+                        <a href={`/cek-status?id=${trackedTicket.id}`}
+                          style={{ display: "inline-block", padding: "10px 24px", borderRadius: 8, border: "none", background: "#E65100", color: "#fff", fontSize: 14, fontWeight: 700, textDecoration: "none" }}>
+                          Lihat Detail Lengkap & Tanggapi →
+                        </a>
+                      </div>
+                    </div>
+                  </div>
                 )}
               </div>
-            </div>
-
-            {/* Tombol Kirim */}
-            <button onClick={handleSubmit} disabled={loading}
-              style={{ padding: "14px", borderRadius: 12, border: "none", background: loading ? "#334155" : "linear-gradient(135deg, #3B82F6, #06B6D4)", color: "#fff", fontSize: 15, fontWeight: 700, cursor: loading ? "not-allowed" : "pointer", fontFamily: "'Outfit', sans-serif" }}>
-              {loading ? "Mengirim..." : "Kirim Laporan →"}
-            </button>
-
+            )}
           </div>
-          {/* ── SUKSES ── */}
-          {tab === "kirim" && submitted && (
-            <div style={{ textAlign: "center", padding: "20px 0" }}>
-              <div style={{ width: 72, height: 72, background: "linear-gradient(135deg, #10B981, #06B6D4)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px", fontSize: 32 }}>✓</div>
-              <h2 style={{ fontSize: 24, fontWeight: 700, marginBottom: 8 }}>Tiket Berhasil Dikirim!</h2>
-              <p style={{ color: "#94A3B8", marginBottom: 24 }}>Tim kami akan segera menangani masalah Anda.</p>
-              <div style={{ background: "rgba(56,189,248,0.1)", border: "1px solid rgba(56,189,248,0.3)", borderRadius: 12, padding: "16px 24px", display: "inline-block" }}>
-                <div style={{ fontSize: 13, color: "#94A3B8", marginBottom: 4 }}>ID Tiket Anda</div>
-                <div style={{ fontSize: 24, fontWeight: 800, color: "#38BDF8", letterSpacing: 2 }}>{submitted}</div>
-              </div>
-              <p style={{ color: "#64748B", fontSize: 13, marginTop: 16 }}>Simpan ID ini untuk mengecek status tiket Anda.</p>
-              <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 24 }}>
-                <button onClick={() => { setSubmitted(null); setForm({ name: "", email: "", peran: "Guru/Dosen", jenisLaporan: "Pertanyaan/Informasi", category: "Umum", subject: "", description: "", priority: "Sedang" });; setFile(null); }}
-                  style={{ padding: "10px 24px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.15)", background: "transparent", color: "#E2E8F0", cursor: "pointer", fontFamily: "'Outfit', sans-serif", fontWeight: 600 }}>
-                  Kirim Tiket Baru
-                </button>
-                <a href={`/cek-status?id=${submitted}`}
-                  style={{ padding: "10px 24px", borderRadius: 10, border: "none", background: "linear-gradient(135deg, #3B82F6, #06B6D4)", color: "#fff", cursor: "pointer", fontFamily: "'Outfit', sans-serif", fontWeight: 600, textDecoration: "none", display: "inline-block" }}>
-                  Cek Status
-                </a>              </div>
-            </div>
-          )}
+        </div>
 
-          {/* ── CEK STATUS ── */}
-          {tab === "cek" && (
+        {/* INFO BOXES */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16, marginTop: 28 }}>
+          {[
+            { icon: "⏱️", title: "Waktu Respons Cepat", desc: "Laporan Anda akan direspons maksimal 1×24 jam kerja oleh tim kami.", color: "#1565C0" },
+            { icon: "🔒", title: "Data Terlindungi", desc: "Informasi yang Anda sampaikan dijaga kerahasiaannya dan tidak dibagikan kepada pihak ketiga.", color: "#2E7D32" },
+            { icon: "📧", title: "Notifikasi Real-time", desc: "Dapatkan notifikasi email otomatis saat ada pembaruan status laporan Anda.", color: "#E65100" },
+            { icon: "📖", title: "Butuh Bantuan?", desc: "Baca panduan lengkap penggunaan layanan ini sebelum mengirim laporan.", color: "#6A1B9A", link: "/panduan" },
+          ].map(b => (
+            <div key={b.title} style={{ background: "#fff", borderRadius: 10, padding: "20px", border: "1.5px solid #E0E0E0", borderTop: `3px solid ${b.color}` }}>
+              <div style={{ fontSize: 26, marginBottom: 10 }}>{b.icon}</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "#1A1A2E", marginBottom: 6 }}>{b.title}</div>
+              <div style={{ fontSize: 13, color: "#607D8B", lineHeight: 1.6 }}>{b.desc}</div>
+              {b.link && <a href={b.link} style={{ display: "inline-block", marginTop: 10, fontSize: 13, color: b.color, fontWeight: 700, textDecoration: "none" }}>Baca Panduan →</a>}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* FOOTER */}
+      <footer style={{ background: "#1A237E", color: "#fff", padding: "32px 40px" }}>
+        <div style={{ maxWidth: 860, margin: "0 auto" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 24, marginBottom: 24 }}>
             <div>
-              <h2 style={{ margin: "0 0 8px", fontSize: 22, fontWeight: 700 }}>Cek Status Tiket</h2>
-              <p style={{ color: "#94A3B8", fontSize: 14, marginBottom: 20 }}>
-                Masukkan ID tiket yang Anda terima saat mengirim laporan.
+              <img src="/logo_b.png" alt="Kemendikdasmen" style={{ height: 40, objectFit: "contain", marginBottom: 12, filter: "brightness(0) invert(1)" }} />
+              <p style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", maxWidth: 320, lineHeight: 1.6 }}>
+                Unit Layanan Terpadu Kementerian Pendidikan Dasar dan Menengah. Melayani dengan sepenuh hati.
               </p>
-
-              {/* FORM CEK — selalu di atas */}
-              <div style={{ display: "flex", gap: 10, marginBottom: 24 }}>
-                <input value={trackId} onChange={e => setTrackId(e.target.value)}
-                  placeholder="Contoh: TKT-ABC123"
-                  onKeyDown={e => e.key === "Enter" && handleTrack()}
-                  style={{ ...inputStyle, flex: 1, fontSize: 15 }} />
-                <button onClick={handleTrack} disabled={loading}
-                  style={{ padding: "12px 24px", borderRadius: 10, border: "none", background: loading ? "#334155" : "linear-gradient(135deg, #3B82F6, #06B6D4)", color: "#fff", fontWeight: 700, cursor: loading ? "not-allowed" : "pointer", fontFamily: "'Outfit', sans-serif", whiteSpace: "nowrap" }}>
-                  {loading ? "..." : "Cek →"}
-                </button>
-              </div>
-
-              {/* ERROR */}
-              {trackError && (
-                <div style={{ padding: "14px 18px", borderRadius: 10, background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", color: "#FCA5A5", fontSize: 14, marginBottom: 16 }}>
-                  ❌ {trackError}
-                </div>
-              )}
-
-              {/* HASIL CEK STATUS */}
-              {trackedTicket && (
-                <div style={{ border: "1px solid rgba(56,189,248,0.2)", borderRadius: 16, overflow: "hidden" }}>
-
-                  {/* HEADER TIKET */}
-                  <div style={{ background: "rgba(56,189,248,0.08)", padding: "20px 24px", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 12 }}>
-                      <div>
-                        <div style={{ fontSize: 12, color: "#64748B", marginBottom: 4 }}>ID Tiket</div>
-                        <div style={{ fontSize: 20, fontWeight: 800, color: "#38BDF8", letterSpacing: 1 }}>{trackedTicket.id}</div>
-                        <div style={{ fontSize: 15, fontWeight: 700, color: "#E2E8F0", marginTop: 6 }}>{trackedTicket.subject}</div>
-                        <div style={{ fontSize: 12, color: "#94A3B8", marginTop: 4 }}>Dikirim {formatDate(trackedTicket.created)}</div>
-                      </div>
-                      <StatusBadge status={trackedTicket.status} />
-                    </div>
-                  </div>
-
-                  <div style={{ padding: "20px 24px" }}>
-
-                    {/* INFO GRID */}
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 10, marginBottom: 20 }}>
-                      {[
-                        ["Nama", trackedTicket.name],
-                        ["Email", trackedTicket.email],
-                        ["Peran", trackedTicket.peran],
-                        ["Jenis", trackedTicket.jenisLaporan],
-                        ["Kategori", trackedTicket.category],
-                        ["Prioritas", trackedTicket.priority],
-                      ].map(([l, v]) => (
-                        <div key={l} style={{ background: "rgba(255,255,255,0.04)", borderRadius: 8, padding: "10px 12px" }}>
-                          <div style={{ fontSize: 11, color: "#64748B", fontWeight: 600, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>{l}</div>
-                          <div style={{
-                            fontSize: 13, fontWeight: 600,
-                            color: l === "Prioritas" ? (PRIORITY_COLOR[v] ?? "#E2E8F0") : "#E2E8F0",
-                            wordBreak: "break-all"
-                          }}>{v || "-"}</div>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* DIPERBARUI */}
-                    <div style={{ fontSize: 12, color: "#64748B", marginBottom: 20 }}>
-                      Terakhir diperbarui: <span style={{ color: "#94A3B8" }}>{formatDate(trackedTicket.updated)}</span>
-                    </div>
-
-                    {/* DESKRIPSI PERTANYAAN */}
-                    <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "16px", marginBottom: 20 }}>
-                      <div style={{ fontSize: 12, color: "#64748B", fontWeight: 600, textTransform: "uppercase", letterSpacing: 1, marginBottom: 10 }}>
-                        📝 Deskripsi Laporan
-                      </div>
-                      <p style={{ margin: 0, fontSize: 14, color: "#CBD5E1", lineHeight: 1.7 }}>
-                        {trackedTicket.description}
-                      </p>
-                    </div>
-
-                    {/* LAMPIRAN */}
-                    {trackedTicket.attachment && (
-                      <a href={trackedTicket.attachment} target="_blank" rel="noopener noreferrer"
-                        style={{ display: "flex", alignItems: "center", gap: 10, background: "rgba(56,189,248,0.08)", border: "1px solid rgba(56,189,248,0.2)", borderRadius: 10, padding: "12px 16px", marginBottom: 20, textDecoration: "none" }}>
-                        <span style={{ fontSize: 20 }}>📎</span>
-                        <div>
-                          <div style={{ fontSize: 13, fontWeight: 600, color: "#38BDF8" }}>Lihat Lampiran</div>
-                          <div style={{ fontSize: 11, color: "#64748B" }}>Klik untuk membuka file</div>
-                        </div>
-                      </a>
-                    )}
-
-                    {/* BALASAN ADMIN */}
-                    {trackedTicket.replies?.length > 0 ? (
-                      <div>
-                        <div style={{ fontSize: 13, fontWeight: 700, color: "#94A3B8", marginBottom: 12 }}>
-                          💬 Balasan Tim ({trackedTicket.replies.length})
-                        </div>
-                        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                          {trackedTicket.replies.map((r: any, i: number) => (
-                            <div key={i} style={{ background: "rgba(59,130,246,0.08)", border: "1px solid rgba(59,130,246,0.2)", borderRadius: 10, padding: "14px 16px" }}>
-                              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, flexWrap: "wrap", gap: 6 }}>
-                                <div style={{ fontSize: 13, color: "#38BDF8", fontWeight: 700 }}>👤 {r.from}</div>
-                                <div style={{ fontSize: 11, color: "#64748B" }}>{formatDate(r.time)}</div>
-                              </div>
-                              <div style={{ fontSize: 14, color: "#E2E8F0", lineHeight: 1.6 }}>{r.text}</div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ) : (
-                      <div style={{ textAlign: "center", padding: "20px", background: "rgba(255,255,255,0.02)", borderRadius: 10, border: "1px dashed rgba(255,255,255,0.08)" }}>
-                        <div style={{ fontSize: 24, marginBottom: 8 }}>⏳</div>
-                        <div style={{ fontSize: 14, color: "#475569" }}>Belum ada balasan dari tim.</div>
-                        <div style={{ fontSize: 12, color: "#334155", marginTop: 4 }}>Tim kami akan merespons dalam 1x24 jam kerja.</div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
             </div>
-          )}
-
-        </div>  {/* tutup card */}
-      </div>    {/* tutup maxWidth container */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>Layanan</div>
+              {[["✉️ Kirim Laporan", "/"], ["🔍 Cek Status", "/cek-status"], ["📖 Panduan", "/panduan"]].map(([l, h]) => (
+                <a key={l} href={h} style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", textDecoration: "none", fontWeight: 500 }}>{l}</a>
+              ))}
+            </div>
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>Jam Operasional</div>
+              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", lineHeight: 1.8 }}>
+                Senin – Jumat<br />08.00 – 17.00 WIB<br />
+                <span style={{ color: "rgba(255,255,255,0.4)" }}>Sabtu, Minggu & Libur Nasional: Tutup</span>
+              </div>
+            </div>
+          </div>
+          <div style={{ borderTop: "1px solid rgba(255,255,255,0.1)", paddingTop: 16, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
+            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>
+              © {new Date().getFullYear()} Kemendikdasmen — Unit Layanan Terpadu. Hak cipta dilindungi.
+            </div>
+            <a href="/admin" style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", textDecoration: "none" }}>Portal Admin</a>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
