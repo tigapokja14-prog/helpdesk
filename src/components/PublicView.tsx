@@ -158,8 +158,7 @@ export default function PublicView() {
       <div style={{ background: "linear-gradient(135deg, #1565C0 0%, #1976D2 60%, #0288D1 100%)", color: "#fff", padding: "56px 40px 64px" }}>
         <div style={{ maxWidth: 860, margin: "0 auto", textAlign: "center" }}>
           <h1 style={{ fontSize: "clamp(28px, 4vw, 46px)", fontWeight: 800, lineHeight: 1.2, marginBottom: 16 }}>
-            Ada yang bisa kami<br />
-            <span style={{ color: "#FFB300" }}>Bantu ?</span>
+            Ada yang bisa<span style={{ color: "#FFB300" }}> kami Bantu ?</span>
           </h1>
           <p style={{ textAlign: "center", fontSize: 16, color: "rgba(255,255,255,0.85)", lineHeight: 1.7, marginBottom: 32 }}>
             Sampaikan pertanyaan, permintaan, keluhan, atau aspirasi Anda kepada kami. Tim kami siap membantu.
@@ -477,7 +476,7 @@ export default function PublicView() {
             <div>
               <img src="/logo_b.png" alt="Kemendikdasmen" style={{ height: 40, objectFit: "contain", marginBottom: 12, filter: "brightness(0) invert(1)" }} />
               <p style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", maxWidth: 320, lineHeight: 1.6 }}>
-                Unit Layanan Terpadu Kementerian Pendidikan Dasar dan Menengah. Melayani dengan sepenuh hati.
+                Unit Layanan Terpadu BPMP DKI Jakarta.<br /> Melayani dengan sepenuh hati.
               </p>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -496,12 +495,12 @@ export default function PublicView() {
           </div>
           <div style={{ borderTop: "1px solid rgba(255,255,255,0.1)", paddingTop: 16, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
             <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>
-              © {new Date().getFullYear()} Kemendikdasmen — Unit Layanan Terpadu. Hak cipta dilindungi.
+              © {new Date().getFullYear()} BPMP Jakarta — Unit Layanan Terpadu. Hak cipta dilindungi.
             </div>
             <a href="/admin" style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", textDecoration: "none" }}>Portal Admin</a>
           </div>
         </div>
-      </footer>
-    </div>
+      </footer >
+    </div >
   );
 }
