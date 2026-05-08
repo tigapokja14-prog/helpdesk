@@ -168,19 +168,19 @@ export default function PublicView() {
       </nav>
 
       {/* HERO */}
-      <div style={{ background: "linear-gradient(135deg, #1565C0 0%, #1976D2 60%, #0288D1 100%)", color: "#fff", padding: "clamp(32px,5vw,56px) 20px clamp(40px,5vw,64px)" }}>
-        <div style={{ maxWidth: 860, margin: "0 auto" }}>
+      <div style={{ background: "linear-gradient(135deg, #1565C0 0%, #1976D2 60%, #0288D1 100%)", color: "#fff", padding: "clamp(32px,5vw,32px) 20px clamp(32px,5vw,32px)" }}>
+        <div style={{ maxWidth: 860, margin: "0 auto", textAlign: "center" }}>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(255,255,255,0.15)", borderRadius: 20, padding: "5px 14px", fontSize: 12, fontWeight: 600, marginBottom: 20, letterSpacing: 0.5 }}>
             🏛️ UNIT LAYANAN TERPADU — BPMP JAKARTA
           </div>
-          <h1 style={{ fontSize: "clamp(28px, 4vw, 46px)", fontWeight: 800, lineHeight: 1.2, marginBottom: 16 }}>
-            Layanan Pengaduan &<br />
-            <span style={{ color: "#FFB300" }}>Bantuan Masyarakat</span>
+          <h1 style={{ fontSize: "clamp(28px, 4vw, 36px)", fontWeight: 800, lineHeight: 1.2, marginBottom: 16 }}>
+            Layanan Pengaduan &
+            <span style={{ color: "#FFB300" }}> Bantuan</span>
           </h1>
-          <p style={{ fontSize: 16, color: "rgba(255,255,255,0.85)", maxWidth: 580, lineHeight: 1.7, marginBottom: 32 }}>
-            Sampaikan pertanyaan, permintaan, keluhan, atau aspirasi Anda kepada Kementerian Pendidikan Dasar dan Menengah. Tim kami siap membantu.
-          </p>
-          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+          <p style={{ fontSize: 14, color: "rgba(255,255,255,0.85)", lineHeight: 1.2, marginBottom: 16 }}>Sampaikan pertanyaan, permintaan, keluhan, atau aspirasi Anda kepada kami.
+            <br />Tim kami siap membantu.</p>
+
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", justifyContent: "center", width: "100%" }}>
             {[
               { icon: "⏱️", label: "Respons 1×24 Jam" },
               { icon: "🔒", label: "Data Aman & Terlindungi" },
@@ -195,7 +195,7 @@ export default function PublicView() {
       </div>
 
       {/* STATS BAR */}
-      <div style={{ background: "#fff", borderBottom: "1px solid #E0E0E0", padding: "16px 20px" }}>
+      <div style={{ background: "#fff", borderBottom: "1px solid #E0E0E0", padding: "10px 20px" }}>
         <div style={{ maxWidth: 860, margin: "0 auto", display: "flex", gap: 40, justifyContent: "center", flexWrap: "wrap" }}>
           {[
             { label: "Jenis Layanan", value: "5" },
@@ -204,8 +204,8 @@ export default function PublicView() {
             { label: "Waktu Respons", value: "≤ 24 Jam" },
           ].map(s => (
             <div key={s.label} style={{ textAlign: "center" }}>
-              <div style={{ fontSize: 22, fontWeight: 800, color: "#1565C0" }}>{s.value}</div>
-              <div style={{ fontSize: 12, color: "#90A4AE", fontWeight: 500 }}>{s.label}</div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: "#1565C0" }}>{s.value}</div>
+              <div style={{ fontSize: 10, color: "#90A4AE", fontWeight: 500 }}>{s.label}</div>
             </div>
           ))}
         </div>
@@ -518,6 +518,6 @@ export default function PublicView() {
           </div>
         </div>
       </footer>
-    </div>
+    </div >
   );
 }
