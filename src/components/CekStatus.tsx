@@ -37,8 +37,8 @@ function Navbar() {
     <>
       <div style={{ background: "#1565C0", color: "#fff", fontSize: 11, padding: "5px 16px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap" }}>
-          <span>Kemendikdasmen — Unit Layanan Terpadu</span>
-          <span className="topbar-jam">📞 Senin–Jumat, 08.00–17.00 WIB</span>
+          <span>BPMP Jakarta — Unit Layanan Terpadu</span>
+          <span className="topbar-jam">📞 Senin–Jumat, 08.00–16.00 WIB</span>
         </div>
       </div>
       <nav style={{ background: "#fff", borderBottom: "1px solid #E0E0E0", padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 200, boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
@@ -73,7 +73,7 @@ function Footer() {
       <div style={{ maxWidth: 1200, margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
         <div>
           <img src="/logo_b2.png" alt="Kemendikdasmen" style={{ height: 34, objectFit: "contain", filter: "brightness(0) invert(1)", marginBottom: 6, display: "block" }} />
-          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>Unit Layanan Terpadu © {new Date().getFullYear()}</div>
+          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>Unit Layanan Terpadu - BPMP Jakarta © {new Date().getFullYear()}</div>
         </div>
         <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
           {[["Beranda", "/"], ["Kirim Laporan", "/"], ["Cek Status", "/cek-status"], ["Panduan", "/panduan"]].map(([l, h]) => (
@@ -200,9 +200,9 @@ export default function CekStatus() {
       {toast && <div style={{ position: "fixed", top: 24, right: 24, zIndex: 9999, background: toast.type === "success" ? "#2E7D32" : "#C62828", color: "#fff", padding: "14px 20px", borderRadius: 8, fontWeight: 600, fontSize: 14, boxShadow: "0 4px 20px rgba(0,0,0,0.15)" }}>{toast.msg}</div>}
 
       {/* HERO */}
-      <div style={{ background: "linear-gradient(135deg, #1565C0 0%, #1976D2 60%, #0288D1 100%)", color: "#fff", padding: "40px 40px 48px", textAlign: "center" }}>
+      <div style={{ background: "linear-gradient(135deg, #1565C0 0%, #1976D2 60%, #0288D1 100%)", color: "#fff", padding: "30px 40px 30px", textAlign: "center" }}>
         <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(255,255,255,0.15)", borderRadius: 20, padding: "5px 14px", fontSize: 12, fontWeight: 600, marginBottom: 16 }}>🔍 CEK STATUS LAPORAN</div>
-        <h1 style={{ fontSize: "clamp(22px,4vw,36px)", fontWeight: 800, marginBottom: 10 }}>Pantau Status <span style={{ color: "#FFB300" }}>Laporan Anda</span></h1>
+        <h1 style={{ fontSize: "clamp(22px,4vw,32px)", fontWeight: 800, marginBottom: 10 }}>Pantau Status <span style={{ color: "#FFB300" }}>Laporan Anda</span></h1>
         <p style={{ fontSize: 15, color: "rgba(255,255,255,0.85)", maxWidth: 500, margin: "0 auto", lineHeight: 1.6 }}>Masukkan ID laporan yang Anda terima melalui email konfirmasi.</p>
       </div>
 

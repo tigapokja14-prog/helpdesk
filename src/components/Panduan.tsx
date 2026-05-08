@@ -104,8 +104,8 @@ function Navbar() {
     <>
       <div style={{ background: "#1565C0", color: "#fff", fontSize: 11, padding: "5px 16px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap" }}>
-          <span>Kemendikdasmen — Unit Layanan Terpadu</span>
-          <span className="topbar-jam">📞 Senin–Jumat, 08.00–17.00 WIB</span>
+          <span>BPMP Jakarta — Unit Layanan Terpadu</span>
+          <span className="topbar-jam">📞 Senin–Jumat, 08.00–16.00 WIB</span>
         </div>
       </div>
       <nav style={{ background: "#fff", borderBottom: "1px solid #E0E0E0", padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 200, boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
@@ -139,8 +139,8 @@ function Footer() {
     <footer style={{ background: "#1A237E", color: "#fff", padding: "28px 16px" }}>
       <div style={{ maxWidth: 1200, margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
         <div>
-          <img src="/logo_b.png" alt="Kemendikdasmen" style={{ height: 34, objectFit: "contain", filter: "brightness(0) invert(1)", marginBottom: 6, display: "block" }} />
-          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>Unit Layanan Terpadu © {new Date().getFullYear()}</div>
+          <img src="/logo_b2.png" alt="Kemendikdasmen" style={{ height: 34, objectFit: "contain", filter: "brightness(0) invert(1)", marginBottom: 6, display: "block" }} />
+          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>Unit Layanan Terpadu - BPMP Jakarta © {new Date().getFullYear()}</div>
         </div>
         <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
           {[["Beranda", "/"], ["Kirim Laporan", "/"], ["Cek Status", "/cek-status"], ["Panduan", "/panduan"]].map(([l, h]) => (
@@ -194,14 +194,14 @@ export default function Panduan() {
       `}</style>
 
       {/* HERO */}
-      <div className="hero-section" style={{ background: "linear-gradient(135deg, #1565C0 0%, #1976D2 60%, #0288D1 100%)", color: "#fff", padding: "48px 20px 56px", textAlign: "center" }}>
+      <div className="hero-section" style={{ background: "linear-gradient(135deg, #1565C0 0%, #1976D2 60%, #0288D1 100%)", color: "#fff", padding: "30px 20px 30px", textAlign: "center" }}>
         <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(255,255,255,0.15)", borderRadius: 20, padding: "5px 14px", fontSize: 12, fontWeight: 600, marginBottom: 16 }}>
           📖 PETUNJUK PENGGUNAAN
         </div>
-        <h1 style={{ fontSize: "clamp(22px, 4vw, 36px)", fontWeight: 800, marginBottom: 12 }}>
-          Panduan Lengkap <span style={{ color: "#FFB300" }}>HelpDeskID</span>
+        <h1 style={{ fontSize: "clamp(22px, 4vw, 32px)", fontWeight: 800, marginBottom: 12 }}>
+          Panduan Lengkap <span style={{ color: "#FFB300" }}>ULTonline</span>
         </h1>
-        <p style={{ fontSize: 15, color: "rgba(255,255,255,0.85)", maxWidth: 520, margin: "0 auto", lineHeight: 1.6 }}>
+        <p style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", maxWidth: 520, margin: "0 auto", lineHeight: 1.2 }}>
           Pelajari cara mengirim laporan, memantau status, dan berkomunikasi dengan tim layanan kami.
         </p>
       </div>
