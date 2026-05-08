@@ -27,6 +27,62 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
+
+// ─── Shared Navbar ────────────────────────────────────────────
+function Navbar() {
+  const [mobileOpen, setMobileOpen] = useState(false);
+  return (
+    <>
+      <div style={{ background: "#1565C0", color: "#fff", fontSize: 11, padding: "5px 16px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap" }}>
+          <span>Kemendikdasmen — Unit Layanan Terpadu</span>
+          <span className="topbar-jam">📞 Senin–Jumat, 08.00–17.00 WIB</span>
+        </div>
+      </div>
+      <nav style={{ background: "#fff", borderBottom: "1px solid #E0E0E0", padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 200, boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
+        <a href="/" style={{ textDecoration: "none", flexShrink: 0 }}>
+          <img src="/logo_b.png" alt="Kemendikdasmen ULT" style={{ height: 36, objectFit: "contain", maxWidth: 200 }} />
+        </a>
+        <div className="nav-desktop" style={{ display: "flex", gap: 6, alignItems: "center" }}>
+          <a href="/panduan" style={{ padding: "7px 12px", borderRadius: 6, border: "1.5px solid #E0E0E0", background: "transparent", color: "#455A64", textDecoration: "none", fontSize: 12, fontWeight: 600, whiteSpace: "nowrap" }}>📖 Panduan</a>
+          <a href="/" style={{ padding: "7px 12px", borderRadius: 6, border: "1.5px solid #1565C0", background: "transparent", color: "#1565C0", textDecoration: "none", fontSize: 12, fontWeight: 700, whiteSpace: "nowrap" }}>✉️ Kirim Laporan</a>
+          <a href="/cek-status" style={{ padding: "7px 12px", borderRadius: 6, border: "1.5px solid #E65100", background: "#E65100", color: "#fff", textDecoration: "none", fontSize: 12, fontWeight: 700, whiteSpace: "nowrap" }}>🔍 Cek Status</a>
+        </div>
+        <button onClick={() => setMobileOpen(!mobileOpen)} className="nav-mobile-btn"
+          style={{ background: "none", border: "1.5px solid #E0E0E0", borderRadius: 6, padding: "6px 12px", cursor: "pointer", fontSize: 20, color: "#455A64", lineHeight: 1 }}>
+          {mobileOpen ? "✕" : "☰"}
+        </button>
+      </nav>
+      {mobileOpen && (
+        <div style={{ background: "#fff", borderBottom: "2px solid #E65100", position: "sticky", top: 57, zIndex: 199, boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}>
+          {[["✉️ Kirim Laporan", "/", "#1565C0"], ["🔍 Cek Status", "/cek-status", "#E65100"], ["📖 Panduan", "/panduan", "#455A64"]].map(([l, h, c]) => (
+            <a key={h} href={h} style={{ display: "block", padding: "14px 16px", color: c, textDecoration: "none", fontSize: 14, fontWeight: 700, borderBottom: "1px solid #F5F7FA" }}>{l}</a>
+          ))}
+        </div>
+      )}
+    </>
+  );
+}
+
+// ─── Shared Footer ────────────────────────────────────────────
+function Footer() {
+  return (
+    <footer style={{ background: "#1A237E", color: "#fff", padding: "28px 16px" }}>
+      <div style={{ maxWidth: 1200, margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
+        <div>
+          <img src="/logo_b.png" alt="Kemendikdasmen" style={{ height: 34, objectFit: "contain", filter: "brightness(0) invert(1)", marginBottom: 6, display: "block" }} />
+          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>Unit Layanan Terpadu © {new Date().getFullYear()}</div>
+        </div>
+        <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+          {[["Beranda", "/"], ["Kirim Laporan", "/"], ["Cek Status", "/cek-status"], ["Panduan", "/panduan"]].map(([l, h]) => (
+            <a key={l} href={h} style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", textDecoration: "none" }}>{l}</a>
+          ))}
+        </div>
+      </div>
+    </footer>
+  );
+}
+
 export default function PublicView() {
   const [tab, setTab] = useState<"kirim" | "cek">("kirim");
   const [form, setForm] = useState({
@@ -110,6 +166,7 @@ export default function PublicView() {
 
   return (
     <div style={{ minHeight: "100vh", background: "#F5F7FA", fontFamily: "'Plus Jakarta Sans', sans-serif", color: "#1A1A2E" }}>
+      <Navbar />
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -119,6 +176,18 @@ export default function PublicView() {
         .fade-up { animation: fadeUp 0.4s ease; }
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-thumb { background: #CFD8DC; border-radius: 3px; }
+        @media (max-width: 640px) {
+          .nav-desktop { display: none !important; }
+          .nav-mobile-btn { display: flex !important; }
+          .topbar-jam { display: none !important; }
+          .form-2col { grid-template-columns: 1fr !important; }
+          .form-3col { grid-template-columns: 1fr !important; }
+        }
+        @media (min-width: 641px) {
+          .nav-desktop { display: flex !important; }
+          .nav-mobile-btn { display: none !important; }
+          .topbar-jam { display: inline !important; }
+        }
         @media (max-width: 640px) {
           .top-bar-right { display: none; }
           .nav-links { gap: 4px !important; }
@@ -132,55 +201,20 @@ export default function PublicView() {
         }
       `}</style>
 
-      {/* TOP BAR */}
-      <div style={{ background: "#1565C0", color: "#fff", padding: "6px 20px", fontSize: 12 }}>
-        <div className="top-bar-inner" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 2 }}>
-          <span>Balai Penjaminan Mutu Pendidikan (BPMP) DKI Jakarta — Unit Layanan Terpadu</span>
-          <span className="top-bar-right">📞 Layanan: Senin–Jumat, 08.00–16.00 WIB</span>
-        </div>
-      </div>
-
-      {/* NAVBAR */}
-      <nav style={{ background: "#fff", borderBottom: "1px solid #E0E0E0", padding: "12px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100, boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
-        <a href="/" style={{ display: "flex", alignItems: "center", textDecoration: "none" }}>
-          <img src="/logo_b.png" alt="Kemendikdasmen ULT" style={{ height: 44, objectFit: "contain" }} />
-        </a>
-        <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-          <a href="/panduan"
-            style={{ padding: "8px 16px", borderRadius: 6, border: "1.5px solid #E0E0E0", background: "transparent", color: "#455A64", textDecoration: "none", fontSize: 13, fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 6 }}>
-            📖 Panduan
-          </a>
-          <button onClick={() => { setTab("kirim"); setSubmitted(null); setError(""); }}
-            style={{
-              padding: "8px 18px", borderRadius: 6, border: "1.5px solid #1565C0", cursor: "pointer", fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 700, fontSize: 13, transition: "all 0.2s",
-              background: tab === "kirim" ? "#1565C0" : "transparent", color: tab === "kirim" ? "#fff" : "#1565C0"
-            }}>
-            Kirim Laporan
-          </button>
-          <a href="/cek-status"
-            style={{
-              padding: "8px 18px", borderRadius: 6, border: "1.5px solid #E65100", cursor: "pointer", fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 700, fontSize: 13, textDecoration: "none", display: "inline-flex", alignItems: "center",
-              background: "#E65100", color: "#fff"
-            }}>
-            Cek Status
-          </a>
-        </div>
-      </nav>
-
       {/* HERO */}
-      <div style={{ background: "linear-gradient(135deg, #1565C0 0%, #1976D2 60%, #0288D1 100%)", color: "#fff", padding: "clamp(32px,5vw,32px) 20px clamp(32px,5vw,32px)" }}>
-        <div style={{ maxWidth: 860, margin: "0 auto", textAlign: "center" }}>
+      <div style={{ background: "linear-gradient(135deg, #1565C0 0%, #1976D2 60%, #0288D1 100%)", color: "#fff", padding: "clamp(32px,5vw,56px) 20px clamp(40px,5vw,64px)" }}>
+        <div style={{ maxWidth: 860, margin: "0 auto" }}>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(255,255,255,0.15)", borderRadius: 20, padding: "5px 14px", fontSize: 12, fontWeight: 600, marginBottom: 20, letterSpacing: 0.5 }}>
-            🏛️ UNIT LAYANAN TERPADU — BPMP JAKARTA
+            🏛️ UNIT LAYANAN TERPADU — KEMENDIKDASMEN
           </div>
-          <h1 style={{ fontSize: "clamp(28px, 4vw, 36px)", fontWeight: 800, lineHeight: 1.2, marginBottom: 16 }}>
-            Layanan Pengaduan &
-            <span style={{ color: "#FFB300" }}> Bantuan</span>
+          <h1 style={{ fontSize: "clamp(28px, 4vw, 46px)", fontWeight: 800, lineHeight: 1.2, marginBottom: 16 }}>
+            Layanan Pengaduan &<br />
+            <span style={{ color: "#FFB300" }}>Bantuan Masyarakat</span>
           </h1>
-          <p style={{ fontSize: 14, color: "rgba(255,255,255,0.85)", lineHeight: 1.2, marginBottom: 16 }}>Sampaikan pertanyaan, permintaan, keluhan, atau aspirasi Anda kepada kami.
-            <br />Tim kami siap membantu.</p>
-
-          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", justifyContent: "center", width: "100%" }}>
+          <p style={{ fontSize: 16, color: "rgba(255,255,255,0.85)", maxWidth: 580, lineHeight: 1.7, marginBottom: 32 }}>
+            Sampaikan pertanyaan, permintaan, keluhan, atau aspirasi Anda kepada Kementerian Pendidikan Dasar dan Menengah. Tim kami siap membantu.
+          </p>
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
             {[
               { icon: "⏱️", label: "Respons 1×24 Jam" },
               { icon: "🔒", label: "Data Aman & Terlindungi" },
@@ -195,17 +229,17 @@ export default function PublicView() {
       </div>
 
       {/* STATS BAR */}
-      <div style={{ background: "#fff", borderBottom: "1px solid #E0E0E0", padding: "10px 20px" }}>
+      <div style={{ background: "#fff", borderBottom: "1px solid #E0E0E0", padding: "16px 20px" }}>
         <div style={{ maxWidth: 860, margin: "0 auto", display: "flex", gap: 40, justifyContent: "center", flexWrap: "wrap" }}>
           {[
             { label: "Jenis Layanan", value: "5" },
             { label: "Kategori Laporan", value: "4" },
-            { label: "Jam Layanan", value: "8 Jam/Hari" },
+            { label: "Jam Layanan", value: "9 Jam/Hari" },
             { label: "Waktu Respons", value: "≤ 24 Jam" },
           ].map(s => (
             <div key={s.label} style={{ textAlign: "center" }}>
-              <div style={{ fontSize: 16, fontWeight: 800, color: "#1565C0" }}>{s.value}</div>
-              <div style={{ fontSize: 10, color: "#90A4AE", fontWeight: 500 }}>{s.label}</div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: "#1565C0" }}>{s.value}</div>
+              <div style={{ fontSize: 12, color: "#90A4AE", fontWeight: 500 }}>{s.label}</div>
             </div>
           ))}
         </div>
@@ -487,37 +521,7 @@ export default function PublicView() {
       </div>
 
       {/* FOOTER */}
-      <footer style={{ background: "#1A237E", color: "#fff", padding: "32px 20px" }}>
-        <div style={{ maxWidth: 860, margin: "0 auto" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 24, marginBottom: 24 }}>
-            <div>
-              <img src="/logo_b2.png" alt="Kemendikdasmen" style={{ height: 40, objectFit: "contain", marginBottom: 12, filter: "brightness(0) invert(1)" }} />
-              <p style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", maxWidth: 320, lineHeight: 1.6 }}>
-                Unit Layanan Terpadu Kementerian Pendidikan Dasar dan Menengah. Melayani dengan sepenuh hati.
-              </p>
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>Layanan</div>
-              {[["✉️ Kirim Laporan", "/"], ["🔍 Cek Status", "/cek-status"], ["📖 Panduan", "/panduan"]].map(([l, h]) => (
-                <a key={l} href={h} style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", textDecoration: "none", fontWeight: 500 }}>{l}</a>
-              ))}
-            </div>
-            <div>
-              <div style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>Jam Operasional</div>
-              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", lineHeight: 1.8 }}>
-                Senin – Jumat<br />08.00 – 17.00 WIB<br />
-                <span style={{ color: "rgba(255,255,255,0.4)" }}>Sabtu, Minggu & Libur Nasional: Tutup</span>
-              </div>
-            </div>
-          </div>
-          <div style={{ borderTop: "1px solid rgba(255,255,255,0.1)", paddingTop: 16, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
-            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>
-              © {new Date().getFullYear()} BPMP Jakarta — Unit Layanan Terpadu. Hak cipta dilindungi.
-            </div>
-            <a href="/admin" style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", textDecoration: "none" }}>Portal Admin</a>
-          </div>
-        </div>
-      </footer>
-    </div >
+      <Footer />
+    </div>
   );
 }

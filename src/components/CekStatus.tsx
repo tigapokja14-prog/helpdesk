@@ -29,6 +29,62 @@ function StatusBadge({ status }: { status: string }) {
 
 type VerifyStep = "idle" | "input_email" | "input_otp" | "verified";
 
+
+// ─── Shared Navbar ────────────────────────────────────────────
+function Navbar() {
+  const [mobileOpen, setMobileOpen] = useState(false);
+  return (
+    <>
+      <div style={{ background: "#1565C0", color: "#fff", fontSize: 11, padding: "5px 16px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap" }}>
+          <span>Kemendikdasmen — Unit Layanan Terpadu</span>
+          <span className="topbar-jam">📞 Senin–Jumat, 08.00–17.00 WIB</span>
+        </div>
+      </div>
+      <nav style={{ background: "#fff", borderBottom: "1px solid #E0E0E0", padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 200, boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
+        <a href="/" style={{ textDecoration: "none", flexShrink: 0 }}>
+          <img src="/logo_b.png" alt="Kemendikdasmen ULT" style={{ height: 36, objectFit: "contain", maxWidth: 200 }} />
+        </a>
+        <div className="nav-desktop" style={{ display: "flex", gap: 6, alignItems: "center" }}>
+          <a href="/panduan" style={{ padding: "7px 12px", borderRadius: 6, border: "1.5px solid #E0E0E0", background: "transparent", color: "#455A64", textDecoration: "none", fontSize: 12, fontWeight: 600, whiteSpace: "nowrap" }}>📖 Panduan</a>
+          <a href="/" style={{ padding: "7px 12px", borderRadius: 6, border: "1.5px solid #1565C0", background: "transparent", color: "#1565C0", textDecoration: "none", fontSize: 12, fontWeight: 700, whiteSpace: "nowrap" }}>✉️ Kirim Laporan</a>
+          <a href="/cek-status" style={{ padding: "7px 12px", borderRadius: 6, border: "1.5px solid #E65100", background: "#E65100", color: "#fff", textDecoration: "none", fontSize: 12, fontWeight: 700, whiteSpace: "nowrap" }}>🔍 Cek Status</a>
+        </div>
+        <button onClick={() => setMobileOpen(!mobileOpen)} className="nav-mobile-btn"
+          style={{ background: "none", border: "1.5px solid #E0E0E0", borderRadius: 6, padding: "6px 12px", cursor: "pointer", fontSize: 20, color: "#455A64", lineHeight: 1 }}>
+          {mobileOpen ? "✕" : "☰"}
+        </button>
+      </nav>
+      {mobileOpen && (
+        <div style={{ background: "#fff", borderBottom: "2px solid #E65100", position: "sticky", top: 57, zIndex: 199, boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}>
+          {[["✉️ Kirim Laporan", "/", "#1565C0"], ["🔍 Cek Status", "/cek-status", "#E65100"], ["📖 Panduan", "/panduan", "#455A64"]].map(([l, h, c]) => (
+            <a key={h} href={h} style={{ display: "block", padding: "14px 16px", color: c, textDecoration: "none", fontSize: 14, fontWeight: 700, borderBottom: "1px solid #F5F7FA" }}>{l}</a>
+          ))}
+        </div>
+      )}
+    </>
+  );
+}
+
+// ─── Shared Footer ────────────────────────────────────────────
+function Footer() {
+  return (
+    <footer style={{ background: "#1A237E", color: "#fff", padding: "28px 16px" }}>
+      <div style={{ maxWidth: 1200, margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
+        <div>
+          <img src="/logo_b2.png" alt="Kemendikdasmen" style={{ height: 34, objectFit: "contain", filter: "brightness(0) invert(1)", marginBottom: 6, display: "block" }} />
+          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>Unit Layanan Terpadu © {new Date().getFullYear()}</div>
+        </div>
+        <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+          {[["Beranda", "/"], ["Kirim Laporan", "/"], ["Cek Status", "/cek-status"], ["Panduan", "/panduan"]].map(([l, h]) => (
+            <a key={l} href={h} style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", textDecoration: "none" }}>{l}</a>
+          ))}
+        </div>
+      </div>
+    </footer>
+  );
+}
+
 export default function CekStatus() {
   const [ticketId, setTicketId] = useState(() => {
     if (typeof window !== "undefined") return new URLSearchParams(window.location.search).get("id") || "";
@@ -104,41 +160,12 @@ export default function CekStatus() {
 
   const inputStyle: React.CSSProperties = { width: "100%", padding: "10px 14px", borderRadius: 6, border: "1.5px solid #E0E0E0", background: "#FAFAFA", color: "#1A1A2E", fontSize: 14, fontFamily: "'Plus Jakarta Sans', sans-serif", boxSizing: "border-box", outline: "none" };
 
-  const NAV = (
-    <>
-      <div style={{ background: "#1565C0", color: "#fff", padding: "6px 40px", fontSize: 12, display: "flex", justifyContent: "space-between" }}>
-        <span>Balai Penjaminan Mutu Pendidikan (BPMP) DKI Jakarta — Unit Layanan Terpadu</span>
-        <span>📞 Layanan: Senin–Jumat, 08.00–16.00 WIB</span>
-      </div>
-      <nav style={{ background: "#fff", borderBottom: "1px solid #E0E0E0", padding: "12px 40px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100, boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
-        <a href="/" style={{ textDecoration: "none" }}><img src="/logo_b.png" alt="Kemendikdasmen ULT" style={{ height: 44, objectFit: "contain" }} /></a>
-        <div style={{ display: "flex", gap: 6 }}>
-          <a href="/panduan" style={{ padding: "8px 16px", borderRadius: 6, border: "1.5px solid #E0E0E0", color: "#455A64", textDecoration: "none", fontSize: 13, fontWeight: 600 }}>📖 Panduan</a>
-          <a href="/" style={{ padding: "8px 18px", borderRadius: 6, border: "1.5px solid #1565C0", color: "#1565C0", textDecoration: "none", fontSize: 13, fontWeight: 700 }}>Kirim Laporan</a>
-          <a href="/cek-status" style={{ padding: "8px 18px", borderRadius: 6, background: "#E65100", color: "#fff", textDecoration: "none", fontSize: 13, fontWeight: 700 }}>Cek Status</a>
-        </div>
-      </nav>
-    </>
-  );
+  const [mobileMenu, setMobileMenu] = useState(false);
 
-  const FOOTER = (
-    <footer style={{ background: "#1A237E", color: "#fff", padding: "28px 40px" }}>
-      <div style={{ maxWidth: 760, margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
-        <div>
-          <img src="/logo_b2.png" alt="Kemendikdasmen" style={{ height: 36, objectFit: "contain", filter: "brightness(0) invert(1)", marginBottom: 6, display: "block" }} />
-          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>Unit Layanan Terpadu © {new Date().getFullYear()}</div>
-        </div>
-        <div style={{ display: "flex", gap: 20 }}>
-          {[["Beranda", "/"], ["Kirim Laporan", "/"], ["Cek Status", "/cek-status"], ["Panduan", "/panduan"]].map(([l, h]) => (
-            <a key={l} href={h} style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", textDecoration: "none" }}>{l}</a>
-          ))}
-        </div>
-      </div>
-    </footer>
-  );
 
   return (
     <div style={{ minHeight: "100vh", background: "#F5F7FA", fontFamily: "'Plus Jakarta Sans', sans-serif", color: "#1A1A2E" }}>
+      <Navbar />
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -146,11 +173,31 @@ export default function CekStatus() {
         input:focus, textarea:focus { border-color: #1565C0 !important; background: #fff !important; }
         @keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
         .fade-up { animation: fadeUp 0.3s ease; }
+        @media (max-width: 640px) {
+          .nav-desktop { display: none !important; }
+          .nav-mobile-btn { display: flex !important; }
+          .topbar-jam { display: none !important; }
+          .form-2col { grid-template-columns: 1fr !important; }
+          .form-3col { grid-template-columns: 1fr !important; }
+        }
+        @media (min-width: 641px) {
+          .nav-desktop { display: flex !important; }
+          .nav-mobile-btn { display: none !important; }
+          .topbar-jam { display: inline !important; }
+        }
+        @media (max-width: 640px) {
+          .desktop-nav { display: none !important; }
+          .mobile-menu-btn { display: flex !important; }
+          .topbar-right { display: none !important; }
+        }
+        @media (min-width: 641px) {
+          .mobile-menu-btn { display: none !important; }
+          #mobile-menu-cs { display: none !important; }
+          .topbar-right { display: inline !important; }
+        }
       `}</style>
 
       {toast && <div style={{ position: "fixed", top: 24, right: 24, zIndex: 9999, background: toast.type === "success" ? "#2E7D32" : "#C62828", color: "#fff", padding: "14px 20px", borderRadius: 8, fontWeight: 600, fontSize: 14, boxShadow: "0 4px 20px rgba(0,0,0,0.15)" }}>{toast.msg}</div>}
-
-      {NAV}
 
       {/* HERO */}
       <div style={{ background: "linear-gradient(135deg, #1565C0 0%, #1976D2 60%, #0288D1 100%)", color: "#fff", padding: "40px 40px 48px", textAlign: "center" }}>
@@ -369,7 +416,7 @@ export default function CekStatus() {
           </div>
         )}
       </div>
-      {FOOTER}
+      <Footer />
     </div>
   );
 }
