@@ -108,7 +108,7 @@ export default function CekStatus() {
     <>
       <div style={{ background: "#1565C0", color: "#fff", padding: "6px 40px", fontSize: 12, display: "flex", justifyContent: "space-between" }}>
         <span>Balai Penjaminan Mutu Pendidikan (BPMP) DKI Jakarta — Unit Layanan Terpadu</span>
-        <span>📞 Layanan: Senin–Jumat, 08.00–17.00 WIB</span>
+        <span>📞 Layanan: Senin–Jumat, 08.00–16.00 WIB</span>
       </div>
       <nav style={{ background: "#fff", borderBottom: "1px solid #E0E0E0", padding: "12px 40px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100, boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
         <a href="/" style={{ textDecoration: "none" }}><img src="/logo_b.png" alt="Kemendikdasmen ULT" style={{ height: 44, objectFit: "contain" }} /></a>
