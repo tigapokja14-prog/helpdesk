@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const STATUS_COLOR: Record<string, { bg: string; text: string; dot: string; icon: string }> = {
   "Menunggu": { bg: "#FFF3E0", text: "#E65100", dot: "#FF6D00", icon: "⏳" },
@@ -37,8 +37,8 @@ function Navbar() {
     <>
       <div style={{ background: "#1565C0", color: "#fff", fontSize: 11, padding: "5px 16px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap" }}>
-          <span>BPMP Jakarta — Unit Layanan Terpadu</span>
-          <span className="topbar-jam">📞 Senin–Jumat, 08.00–16.00 WIB</span>
+          <span>BPMP Jakarta | Kemendikdasmen — Unit Layanan Terpadu</span>
+          <span className="topbar-jam">📞 Senin–Jumat, 08.00–17.00 WIB</span>
         </div>
       </div>
       <nav style={{ background: "#fff", borderBottom: "1px solid #E0E0E0", padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 200, boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
@@ -50,18 +50,16 @@ function Navbar() {
           <a href="/" style={{ padding: "7px 12px", borderRadius: 6, border: "1.5px solid #1565C0", background: "transparent", color: "#1565C0", textDecoration: "none", fontSize: 12, fontWeight: 700, whiteSpace: "nowrap" }}>✉️ Kirim Laporan</a>
           <a href="/cek-status" style={{ padding: "7px 12px", borderRadius: 6, border: "1.5px solid #E65100", background: "#E65100", color: "#fff", textDecoration: "none", fontSize: 12, fontWeight: 700, whiteSpace: "nowrap" }}>🔍 Cek Status</a>
         </div>
-        <button onClick={() => setMobileOpen(!mobileOpen)} className="nav-mobile-btn"
+        <button onClick={() => setMobileOpen(!mobileOpen)} className="nav-mobile-btn" suppressHydrationWarning
           style={{ background: "none", border: "1.5px solid #E0E0E0", borderRadius: 6, padding: "6px 12px", cursor: "pointer", fontSize: 20, color: "#455A64", lineHeight: 1 }}>
-          {mobileOpen ? "✕" : "☰"}
+          ☰
         </button>
       </nav>
-      {mobileOpen && (
-        <div style={{ background: "#fff", borderBottom: "2px solid #E65100", position: "sticky", top: 57, zIndex: 199, boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}>
-          {[["✉️ Kirim Laporan", "/", "#1565C0"], ["🔍 Cek Status", "/cek-status", "#E65100"], ["📖 Panduan", "/panduan", "#455A64"]].map(([l, h, c]) => (
-            <a key={h} href={h} style={{ display: "block", padding: "14px 16px", color: c, textDecoration: "none", fontSize: 14, fontWeight: 700, borderBottom: "1px solid #F5F7FA" }}>{l}</a>
-          ))}
-        </div>
-      )}
+      <div suppressHydrationWarning style={{ display: mobileOpen ? "block" : "none", background: "#fff", borderBottom: "2px solid #E65100", position: "sticky", top: 57, zIndex: 199, boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}>
+        {[["✉️ Kirim Laporan", "/", "#1565C0"], ["🔍 Cek Status", "/cek-status", "#E65100"], ["📖 Panduan", "/panduan", "#455A64"]].map(([l, h, c]) => (
+          <a key={h} href={h} style={{ display: "block", padding: "14px 16px", color: c, textDecoration: "none", fontSize: 14, fontWeight: 700, borderBottom: "1px solid #F5F7FA" }}>{l}</a>
+        ))}
+      </div>
     </>
   );
 }
@@ -73,7 +71,7 @@ function Footer() {
       <div style={{ maxWidth: 1200, margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
         <div>
           <img src="/logo_b2.png" alt="Kemendikdasmen" style={{ height: 34, objectFit: "contain", filter: "brightness(0) invert(1)", marginBottom: 6, display: "block" }} />
-          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>Unit Layanan Terpadu - BPMP Jakarta © {new Date().getFullYear()}</div>
+          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>© 2026</div>
         </div>
         <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
           {[["Beranda", "/"], ["Kirim Laporan", "/"], ["Cek Status", "/cek-status"], ["Panduan", "/panduan"]].map(([l, h]) => (
@@ -86,10 +84,14 @@ function Footer() {
 }
 
 export default function CekStatus() {
-  const [ticketId, setTicketId] = useState(() => {
-    if (typeof window !== "undefined") return new URLSearchParams(window.location.search).get("id") || "";
-    return "";
-  });
+  const [ticketId, setTicketId] = useState("");
+
+  // Ambil ID dari URL setelah komponen mount (hindari hydration mismatch)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("id");
+    if (id) setTicketId(id);
+  }, []);
   const [ticket, setTicket] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -164,10 +166,9 @@ export default function CekStatus() {
 
 
   return (
-    <div style={{ minHeight: "100vh", background: "#F5F7FA", fontFamily: "'Plus Jakarta Sans', sans-serif", color: "#1A1A2E" }}>
+    <div style={{ minHeight: "100vh", background: "#F5F7FA", fontFamily: "'Plus Jakarta Sans', sans-serif", color: "#1A1A2E" }} suppressHydrationWarning>
       <Navbar />
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; }
         input::placeholder, textarea::placeholder { color: #90A4AE; }
         input:focus, textarea:focus { border-color: #1565C0 !important; background: #fff !important; }
@@ -198,6 +199,7 @@ export default function CekStatus() {
       `}</style>
 
       {toast && <div style={{ position: "fixed", top: 24, right: 24, zIndex: 9999, background: toast.type === "success" ? "#2E7D32" : "#C62828", color: "#fff", padding: "14px 20px", borderRadius: 8, fontWeight: 600, fontSize: 14, boxShadow: "0 4px 20px rgba(0,0,0,0.15)" }}>{toast.msg}</div>}
+
 
       {/* HERO */}
       <div style={{ background: "linear-gradient(135deg, #1565C0 0%, #1976D2 60%, #0288D1 100%)", color: "#fff", padding: "30px 40px 30px", textAlign: "center" }}>
