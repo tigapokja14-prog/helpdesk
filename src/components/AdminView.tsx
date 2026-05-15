@@ -1132,10 +1132,13 @@ function LoginScreen({ onLogin }: { onLogin: (token: string, nama: string, role:
   return (
     <div style={{ minHeight: "100vh", background: "linear-gradient(135deg, #0F172A 0%, #1E3A5F 100%)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Outfit', sans-serif", padding: 20 }}>
       <div style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 24, padding: "clamp(32px, 5vw, 48px) clamp(24px, 5vw, 40px)", width: "100%", maxWidth: 380, backdropFilter: "blur(20px)" }}>
+
+        <img src="/logo_b3.png" alt="Kemendikdasmen - Unit Layanan Terpadu" style={{ width: "100%", maxHeight: 44, objectFit: "contain", objectPosition: "center", margin: "0 auto 16px" }} />
+
         <div style={{ textAlign: "center", marginBottom: 32 }}>
-          <div style={{ width: 52, height: 52, background: "linear-gradient(135deg, #3B82F6, #06B6D4)", borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
+          {/* <div style={{ width: 52, height: 52, background: "linear-gradient(135deg, #3B82F6, #06B6D4)", borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
             <svg width="26" height="26" viewBox="0 0 24 24" fill="white"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z" /></svg>
-          </div>
+          </div> */}
           <h2 style={{ color: "#fff", margin: "0 0 6px", fontSize: 22, fontWeight: 700 }}>Admin Panel</h2>
           <p style={{ color: "#64748B", fontSize: 14, margin: 0 }}>Masuk dengan akun admin Anda</p>
         </div>
