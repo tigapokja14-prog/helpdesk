@@ -88,6 +88,375 @@ function BarChart({ data }: { data: { label: string; value: number; color: strin
   );
 }
 
+// ─── Monthly Recap ───────────────────────────────────────────
+const BULAN_ID = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+
+function MonthlyRecap({ tickets }: { tickets: any[] }) {
+  const years = Array.from(new Set(tickets.map(t => new Date(t.created).getFullYear()))).sort((a, b) => b - a);
+  const currentYear = new Date().getFullYear();
+  const [selectedYear, setSelectedYear] = useState(years.includes(currentYear) ? currentYear : (years[0] || currentYear));
+
+  const monthlyData = BULAN_ID.map((label, i) => {
+    const mo = tickets.filter(t => {
+      const d = new Date(t.created);
+      return d.getFullYear() === selectedYear && d.getMonth() === i;
+    });
+    return {
+      label,
+      total: mo.length,
+      menunggu: mo.filter(t => t.status === "Menunggu").length,
+      proses: mo.filter(t => t.status === "Dalam Proses").length,
+      selesai: mo.filter(t => t.status === "Selesai").length,
+      ditolak: mo.filter(t => t.status === "Ditolak").length,
+    };
+  });
+
+  const maxVal = Math.max(...monthlyData.map(d => d.total), 1);
+  const totalYear = monthlyData.reduce((s, d) => s + d.total, 0);
+  const totalSelesai = monthlyData.reduce((s, d) => s + d.selesai, 0);
+
+  const cardStyle: React.CSSProperties = { background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, padding: "20px 24px" };
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
+        <div>
+          <div style={{ fontSize: 15, fontWeight: 700, color: "#E2E8F0" }}>📅 Rekap Bulanan</div>
+          <div style={{ fontSize: 12, color: "#64748B", marginTop: 2 }}>Total {totalYear} tiket di tahun {selectedYear} · {totalSelesai} selesai</div>
+        </div>
+        <select value={selectedYear} onChange={e => setSelectedYear(Number(e.target.value))}
+          style={{ padding: "8px 14px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.12)", background: "#1E293B", color: "#E2E8F0", fontSize: 14, fontFamily: "'Outfit',sans-serif", outline: "none" }}>
+          {years.map(y => <option key={y} value={y}>{y}</option>)}
+          {!years.includes(currentYear) && <option value={currentYear}>{currentYear}</option>}
+        </select>
+      </div>
+
+      {/* Bar Chart */}
+      <div style={cardStyle}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: "#E2E8F0", marginBottom: 16 }}>📊 Jumlah Tiket per Bulan ({selectedYear})</div>
+        <div style={{ display: "flex", alignItems: "flex-end", gap: 6, height: 140, overflowX: "auto" }}>
+          {monthlyData.map((d, i) => (
+            <div key={i} style={{ flex: 1, minWidth: 36, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+              <span style={{ fontSize: 11, color: "#38BDF8", fontWeight: 700, visibility: d.total > 0 ? "visible" : "hidden" }}>{d.total}</span>
+              <div style={{ width: "100%", borderRadius: "4px 4px 0 0", background: d.total > 0 ? "linear-gradient(180deg,#38BDF8,#3B82F6)" : "rgba(255,255,255,0.05)", height: `${(d.total / maxVal) * 100}px`, minHeight: 4, transition: "height 0.6s ease" }} />
+              <span style={{ fontSize: 10, color: "#475569", whiteSpace: "nowrap" }}>{d.label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Table */}
+      <div style={cardStyle}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: "#E2E8F0", marginBottom: 16 }}>📋 Detail per Bulan ({selectedYear})</div>
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+            <thead>
+              <tr style={{ background: "rgba(255,255,255,0.04)" }}>
+                {["Bulan", "Total", "Menunggu", "Dalam Proses", "Selesai", "Ditolak", "Tingkat Selesai"].map(h => (
+                  <th key={h} style={{ padding: "10px 12px", textAlign: "left", color: "#64748B", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.8, fontSize: 10, whiteSpace: "nowrap" }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {monthlyData.map((d, i) => (
+                <tr key={i} style={{ borderTop: "1px solid rgba(255,255,255,0.05)", opacity: d.total === 0 ? 0.4 : 1 }}>
+                  <td style={{ padding: "10px 12px", fontWeight: 600, color: "#E2E8F0" }}>{BULAN_ID[i]}</td>
+                  <td style={{ padding: "10px 12px", fontWeight: 800, color: "#38BDF8" }}>{d.total}</td>
+                  <td style={{ padding: "10px 12px", color: "#F59E0B" }}>{d.menunggu}</td>
+                  <td style={{ padding: "10px 12px", color: "#3B82F6" }}>{d.proses}</td>
+                  <td style={{ padding: "10px 12px", color: "#10B981" }}>{d.selesai}</td>
+                  <td style={{ padding: "10px 12px", color: "#EF4444" }}>{d.ditolak}</td>
+                  <td style={{ padding: "10px 12px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <div style={{ flex: 1, height: 6, borderRadius: 3, background: "rgba(255,255,255,0.06)", overflow: "hidden", minWidth: 40 }}>
+                        <div style={{ height: "100%", width: `${d.total > 0 ? Math.round((d.selesai / d.total) * 100) : 0}%`, background: "#10B981", borderRadius: 3, transition: "width 0.6s ease" }} />
+                      </div>
+                      <span style={{ fontSize: 11, color: "#10B981", fontWeight: 700, minWidth: 32 }}>{d.total > 0 ? Math.round((d.selesai / d.total) * 100) : 0}%</span>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              <tr style={{ borderTop: "2px solid rgba(255,255,255,0.1)", background: "rgba(56,189,248,0.04)" }}>
+                <td style={{ padding: "10px 12px", fontWeight: 800, color: "#38BDF8" }}>TOTAL</td>
+                <td style={{ padding: "10px 12px", fontWeight: 800, color: "#38BDF8" }}>{totalYear}</td>
+                <td style={{ padding: "10px 12px", fontWeight: 700, color: "#F59E0B" }}>{monthlyData.reduce((s, d) => s + d.menunggu, 0)}</td>
+                <td style={{ padding: "10px 12px", fontWeight: 700, color: "#3B82F6" }}>{monthlyData.reduce((s, d) => s + d.proses, 0)}</td>
+                <td style={{ padding: "10px 12px", fontWeight: 700, color: "#10B981" }}>{totalSelesai}</td>
+                <td style={{ padding: "10px 12px", fontWeight: 700, color: "#EF4444" }}>{monthlyData.reduce((s, d) => s + d.ditolak, 0)}</td>
+                <td style={{ padding: "10px 12px", fontWeight: 700, color: "#10B981" }}>{totalYear > 0 ? Math.round((totalSelesai / totalYear) * 100) : 0}%</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* PERAN PER BULAN */}
+      {(() => {
+        const allPeran = Array.from(new Set(tickets.filter(t => {
+          const d = new Date(t.created);
+          return d.getFullYear() === selectedYear;
+        }).map(t => t.peran).filter(Boolean)));
+        if (allPeran.length === 0) return null;
+        const peranMonthly = allPeran.map((p, pi) => ({
+          peran: p,
+          color: PERAN_COLORS[pi % 8],
+          counts: BULAN_ID.map((_, mi) => tickets.filter(t => {
+            const d = new Date(t.created);
+            return d.getFullYear() === selectedYear && d.getMonth() === mi && t.peran === p;
+          }).length),
+        }));
+        const maxBar = Math.max(...BULAN_ID.map((_, mi) => allPeran.reduce((s, p) => s + tickets.filter(t => {
+          const d = new Date(t.created); return d.getFullYear() === selectedYear && d.getMonth() === mi && t.peran === p;
+        }).length, 0)), 1);
+        const H2 = 110;
+        return (
+          <div style={cardStyle}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#E2E8F0", marginBottom: 14 }}>👥 Peran Pengirim per Bulan ({selectedYear})</div>
+            {/* Legend */}
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 14 }}>
+              {peranMonthly.map(p => (
+                <div key={p.peran} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <div style={{ width: 9, height: 9, borderRadius: "50%", background: p.color }} />
+                  <span style={{ fontSize: 12, color: "#94A3B8" }}>{p.peran}</span>
+                </div>
+              ))}
+            </div>
+            {/* Stacked bar */}
+            <div style={{ display: "flex", alignItems: "flex-end", gap: 6, height: H2 + 22, marginBottom: 14 }}>
+              {BULAN_ID.map((lbl, mi) => {
+                const colTotal = peranMonthly.reduce((s, p) => s + p.counts[mi], 0);
+                return (
+                  <div key={mi} style={{ flex: 1, minWidth: 30, display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
+                    <span style={{ fontSize: 9, color: "#64748B", fontWeight: 600 }}>{colTotal > 0 ? colTotal : ""}</span>
+                    <div style={{ width: "100%", display: "flex", flexDirection: "column-reverse", height: `${(colTotal / maxBar) * H2}px`, minHeight: colTotal > 0 ? 4 : 3, borderRadius: "4px 4px 0 0", overflow: "hidden", background: colTotal === 0 ? "rgba(255,255,255,0.04)" : "transparent" }}>
+                      {peranMonthly.map(p => {
+                        const pct = colTotal > 0 ? (p.counts[mi] / colTotal) * 100 : 0;
+                        return pct > 0 ? <div key={p.peran} title={`${p.peran}: ${p.counts[mi]}`} style={{ width: "100%", height: `${pct}%`, background: p.color, flexShrink: 0 }} /> : null;
+                      })}
+                    </div>
+                    <span style={{ fontSize: 9, color: "#475569", whiteSpace: "nowrap" }}>{lbl}</span>
+                  </div>
+                );
+              })}
+            </div>
+            {/* Table */}
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 11 }}>
+                <thead>
+                  <tr style={{ background: "rgba(255,255,255,0.03)" }}>
+                    <th style={{ padding: "7px 10px", textAlign: "left", color: "#475569", fontWeight: 700, fontSize: 10, textTransform: "uppercase", whiteSpace: "nowrap" }}>Peran</th>
+                    {BULAN_ID.map(m => <th key={m} style={{ padding: "7px 8px", textAlign: "center", color: "#475569", fontWeight: 700, fontSize: 10 }}>{m}</th>)}
+                    <th style={{ padding: "7px 10px", textAlign: "center", color: "#38BDF8", fontWeight: 700, fontSize: 10 }}>Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {peranMonthly.map(p => (
+                    <tr key={p.peran} style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}>
+                      <td style={{ padding: "7px 10px" }}><div style={{ display: "flex", alignItems: "center", gap: 6 }}><div style={{ width: 8, height: 8, borderRadius: "50%", background: p.color, flexShrink: 0 }} /><span style={{ color: "#CBD5E1", fontWeight: 600, whiteSpace: "nowrap" }}>{p.peran}</span></div></td>
+                      {p.counts.map((c, mi) => <td key={mi} style={{ padding: "7px 8px", textAlign: "center", color: c > 0 ? p.color : "#334155", fontWeight: c > 0 ? 700 : 400 }}>{c}</td>)}
+                      <td style={{ padding: "7px 10px", textAlign: "center", fontWeight: 800, color: p.color }}>{p.counts.reduce((s, c) => s + c, 0)}</td>
+                    </tr>
+                  ))}
+                  <tr style={{ borderTop: "2px solid rgba(255,255,255,0.08)", background: "rgba(56,189,248,0.03)" }}>
+                    <td style={{ padding: "7px 10px", fontWeight: 800, color: "#38BDF8", fontSize: 11 }}>TOTAL</td>
+                    {BULAN_ID.map((_, mi) => <td key={mi} style={{ padding: "7px 8px", textAlign: "center", fontWeight: 800, color: "#38BDF8" }}>{peranMonthly.reduce((s, p) => s + p.counts[mi], 0)}</td>)}
+                    <td style={{ padding: "7px 10px", textAlign: "center", fontWeight: 800, color: "#38BDF8" }}>{peranMonthly.reduce((s, p) => s + p.counts.reduce((a, c) => a + c, 0), 0)}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        );
+      })()}
+    </div>
+  );
+}
+
+// ─── Yearly Recap ──────────────────────────────────────────────
+function YearlyRecap({ tickets }: { tickets: any[] }) {
+  const years = Array.from(new Set(tickets.map(t => new Date(t.created).getFullYear()))).sort((a, b) => a - b);
+  if (years.length === 0) years.push(new Date().getFullYear());
+
+  const yearlyData = years.map(y => {
+    const yt = tickets.filter(t => new Date(t.created).getFullYear() === y);
+    return {
+      year: y,
+      total: yt.length,
+      menunggu: yt.filter(t => t.status === "Menunggu").length,
+      proses: yt.filter(t => t.status === "Dalam Proses").length,
+      selesai: yt.filter(t => t.status === "Selesai").length,
+      ditolak: yt.filter(t => t.status === "Ditolak").length,
+    };
+  });
+
+  const maxVal = Math.max(...yearlyData.map(d => d.total), 1);
+  const grandTotal = yearlyData.reduce((s, d) => s + d.total, 0);
+  const grandSelesai = yearlyData.reduce((s, d) => s + d.selesai, 0);
+
+  const cardStyle: React.CSSProperties = { background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, padding: "20px 24px" };
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+      <div>
+        <div style={{ fontSize: 15, fontWeight: 700, color: "#E2E8F0" }}>📆 Rekap Tahunan</div>
+        <div style={{ fontSize: 12, color: "#64748B", marginTop: 2 }}>Total {grandTotal} tiket dari {years[0]} s/d {years[years.length - 1]} · {grandSelesai} selesai</div>
+      </div>
+
+      {/* Stat cards per year */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: 14 }}>
+        {yearlyData.map(d => (
+          <div key={d.year} style={{ ...cardStyle, padding: "16px 20px", position: "relative", overflow: "hidden" }}>
+            <div style={{ position: "absolute", top: -16, right: -16, width: 64, height: 64, borderRadius: "50%", background: "#38BDF8", opacity: 0.08 }} />
+            <div style={{ fontSize: 22, fontWeight: 800, color: "#38BDF8", marginBottom: 2 }}>{d.total}</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#E2E8F0", marginBottom: 8 }}>Tahun {d.year}</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11 }}><span style={{ color: "#F59E0B" }}>Menunggu</span><span style={{ fontWeight: 700, color: "#F59E0B" }}>{d.menunggu}</span></div>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11 }}><span style={{ color: "#3B82F6" }}>Dalam Proses</span><span style={{ fontWeight: 700, color: "#3B82F6" }}>{d.proses}</span></div>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11 }}><span style={{ color: "#10B981" }}>Selesai</span><span style={{ fontWeight: 700, color: "#10B981" }}>{d.selesai}</span></div>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11 }}><span style={{ color: "#EF4444" }}>Ditolak</span><span style={{ fontWeight: 700, color: "#EF4444" }}>{d.ditolak}</span></div>
+            </div>
+            <div style={{ marginTop: 10, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.06)" }}>
+              <div style={{ height: "100%", width: `${d.total > 0 ? Math.round((d.selesai / d.total) * 100) : 0}%`, background: "#10B981", borderRadius: 2 }} />
+            </div>
+            <div style={{ fontSize: 10, color: "#10B981", marginTop: 4, fontWeight: 700 }}>{d.total > 0 ? Math.round((d.selesai / d.total) * 100) : 0}% selesai</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Bar Chart */}
+      <div style={cardStyle}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: "#E2E8F0", marginBottom: 16 }}>📊 Tren Tiket per Tahun</div>
+        <div style={{ display: "flex", alignItems: "flex-end", gap: 16, height: 140 }}>
+          {yearlyData.map((d, i) => (
+            <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+              <span style={{ fontSize: 13, color: "#38BDF8", fontWeight: 700 }}>{d.total}</span>
+              <div style={{ width: "100%", maxWidth: 80, borderRadius: "6px 6px 0 0", background: "linear-gradient(180deg,#38BDF8,#3B82F6)", height: `${(d.total / maxVal) * 100}px`, minHeight: 4, transition: "height 0.6s ease" }} />
+              <span style={{ fontSize: 12, color: "#94A3B8", fontWeight: 600 }}>{d.year}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Table */}
+      <div style={cardStyle}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: "#E2E8F0", marginBottom: 16 }}>📋 Tabel Rekap Tahunan</div>
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+            <thead>
+              <tr style={{ background: "rgba(255,255,255,0.04)" }}>
+                {["Tahun", "Total", "Menunggu", "Dalam Proses", "Selesai", "Ditolak", "Tingkat Selesai"].map(h => (
+                  <th key={h} style={{ padding: "10px 12px", textAlign: "left", color: "#64748B", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.8, fontSize: 10, whiteSpace: "nowrap" }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {yearlyData.map((d, i) => (
+                <tr key={i} style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+                  <td style={{ padding: "10px 12px", fontWeight: 700, color: "#E2E8F0" }}>{d.year}</td>
+                  <td style={{ padding: "10px 12px", fontWeight: 800, color: "#38BDF8" }}>{d.total}</td>
+                  <td style={{ padding: "10px 12px", color: "#F59E0B" }}>{d.menunggu}</td>
+                  <td style={{ padding: "10px 12px", color: "#3B82F6" }}>{d.proses}</td>
+                  <td style={{ padding: "10px 12px", color: "#10B981" }}>{d.selesai}</td>
+                  <td style={{ padding: "10px 12px", color: "#EF4444" }}>{d.ditolak}</td>
+                  <td style={{ padding: "10px 12px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <div style={{ flex: 1, height: 6, borderRadius: 3, background: "rgba(255,255,255,0.06)", overflow: "hidden", minWidth: 60 }}>
+                        <div style={{ height: "100%", width: `${d.total > 0 ? Math.round((d.selesai / d.total) * 100) : 0}%`, background: "#10B981", borderRadius: 3 }} />
+                      </div>
+                      <span style={{ fontSize: 11, color: "#10B981", fontWeight: 700, minWidth: 36 }}>{d.total > 0 ? Math.round((d.selesai / d.total) * 100) : 0}%</span>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              <tr style={{ borderTop: "2px solid rgba(255,255,255,0.1)", background: "rgba(56,189,248,0.04)" }}>
+                <td style={{ padding: "10px 12px", fontWeight: 800, color: "#38BDF8" }}>TOTAL</td>
+                <td style={{ padding: "10px 12px", fontWeight: 800, color: "#38BDF8" }}>{grandTotal}</td>
+                <td style={{ padding: "10px 12px", fontWeight: 700, color: "#F59E0B" }}>{yearlyData.reduce((s, d) => s + d.menunggu, 0)}</td>
+                <td style={{ padding: "10px 12px", fontWeight: 700, color: "#3B82F6" }}>{yearlyData.reduce((s, d) => s + d.proses, 0)}</td>
+                <td style={{ padding: "10px 12px", fontWeight: 700, color: "#10B981" }}>{grandSelesai}</td>
+                <td style={{ padding: "10px 12px", fontWeight: 700, color: "#EF4444" }}>{yearlyData.reduce((s, d) => s + d.ditolak, 0)}</td>
+                <td style={{ padding: "10px 12px", fontWeight: 700, color: "#10B981" }}>{grandTotal > 0 ? Math.round((grandSelesai / grandTotal) * 100) : 0}%</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* PERAN PER TAHUN */}
+      {(() => {
+        const allPeran = Array.from(new Set(tickets.map(t => t.peran).filter(Boolean)));
+        if (allPeran.length === 0) return null;
+        const peranYearly = allPeran.map((p, pi) => ({
+          peran: p,
+          color: PERAN_COLORS[pi % 8],
+          counts: years.map(y => tickets.filter(t => new Date(t.created).getFullYear() === y && t.peran === p).length),
+        }));
+        const maxBar = Math.max(...years.map((y, yi) => allPeran.reduce((s, p) => s + peranYearly.find(r => r.peran === p)!.counts[yi], 0)), 1);
+        const H2 = 120;
+        return (
+          <div style={cardStyle}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#E2E8F0", marginBottom: 14 }}>👥 Peran Pengirim per Tahun</div>
+            {/* Legend */}
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 14 }}>
+              {peranYearly.map(p => (
+                <div key={p.peran} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <div style={{ width: 9, height: 9, borderRadius: "50%", background: p.color }} />
+                  <span style={{ fontSize: 12, color: "#94A3B8" }}>{p.peran}</span>
+                </div>
+              ))}
+            </div>
+            {/* Stacked bar */}
+            <div style={{ display: "flex", alignItems: "flex-end", gap: 16, height: H2 + 24, marginBottom: 14 }}>
+              {years.map((y, yi) => {
+                const colTotal = peranYearly.reduce((s, p) => s + p.counts[yi], 0);
+                return (
+                  <div key={y} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
+                    <span style={{ fontSize: 11, color: "#64748B", fontWeight: 700 }}>{colTotal > 0 ? colTotal : ""}</span>
+                    <div style={{ width: "100%", maxWidth: 80, display: "flex", flexDirection: "column-reverse", height: `${(colTotal / maxBar) * H2}px`, minHeight: colTotal > 0 ? 6 : 4, borderRadius: "5px 5px 0 0", overflow: "hidden", background: colTotal === 0 ? "rgba(255,255,255,0.05)" : "transparent" }}>
+                      {peranYearly.map(p => {
+                        const pct = colTotal > 0 ? (p.counts[yi] / colTotal) * 100 : 0;
+                        return pct > 0 ? <div key={p.peran} title={`${p.peran}: ${p.counts[yi]}`} style={{ width: "100%", height: `${pct}%`, background: p.color, flexShrink: 0 }} /> : null;
+                      })}
+                    </div>
+                    <span style={{ fontSize: 11, color: "#94A3B8", fontWeight: 600 }}>{y}</span>
+                  </div>
+                );
+              })}
+            </div>
+            {/* Table */}
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 11 }}>
+                <thead>
+                  <tr style={{ background: "rgba(255,255,255,0.03)" }}>
+                    <th style={{ padding: "7px 10px", textAlign: "left", color: "#475569", fontWeight: 700, fontSize: 10, textTransform: "uppercase", whiteSpace: "nowrap" }}>Peran</th>
+                    {years.map(y => <th key={y} style={{ padding: "7px 10px", textAlign: "center", color: "#475569", fontWeight: 700, fontSize: 10 }}>{y}</th>)}
+                    <th style={{ padding: "7px 10px", textAlign: "center", color: "#38BDF8", fontWeight: 700, fontSize: 10 }}>Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {peranYearly.map(p => (
+                    <tr key={p.peran} style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}>
+                      <td style={{ padding: "7px 10px" }}><div style={{ display: "flex", alignItems: "center", gap: 6 }}><div style={{ width: 8, height: 8, borderRadius: "50%", background: p.color, flexShrink: 0 }} /><span style={{ color: "#CBD5E1", fontWeight: 600, whiteSpace: "nowrap" }}>{p.peran}</span></div></td>
+                      {p.counts.map((c, yi) => <td key={yi} style={{ padding: "7px 10px", textAlign: "center", color: c > 0 ? p.color : "#334155", fontWeight: c > 0 ? 700 : 400 }}>{c}</td>)}
+                      <td style={{ padding: "7px 10px", textAlign: "center", fontWeight: 800, color: p.color }}>{p.counts.reduce((s, c) => s + c, 0)}</td>
+                    </tr>
+                  ))}
+                  <tr style={{ borderTop: "2px solid rgba(255,255,255,0.08)", background: "rgba(56,189,248,0.03)" }}>
+                    <td style={{ padding: "7px 10px", fontWeight: 800, color: "#38BDF8", fontSize: 11 }}>TOTAL</td>
+                    {years.map((y, yi) => <td key={yi} style={{ padding: "7px 10px", textAlign: "center", fontWeight: 800, color: "#38BDF8" }}>{peranYearly.reduce((s, p) => s + p.counts[yi], 0)}</td>)}
+                    <td style={{ padding: "7px 10px", textAlign: "center", fontWeight: 800, color: "#38BDF8" }}>{peranYearly.reduce((s, p) => s + p.counts.reduce((a, c) => a + c, 0), 0)}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        );
+      })()}
+    </div>
+  );
+}
+
 // ─── Trend Chart (7 hari terakhir) ───────────────────────────
 function TrendChart({ tickets }: { tickets: any[] }) {
   const days = Array.from({ length: 7 }, (_, i) => {
@@ -125,8 +494,136 @@ function TrendChart({ tickets }: { tickets: any[] }) {
   );
 }
 
+// ─── Tren Peran Pengirim ─────────────────────────────────────
+const PERAN_COLORS = ["#38BDF8", "#818CF8", "#F472B6", "#34D399", "#F59E0B", "#EF4444", "#A78BFA", "#FB923C"];
+
+function PeranTrendChart({ tickets }: { tickets: any[] }) {
+  const [range, setRange] = useState<6 | 12>(6);
+
+  // Buat daftar bulan (range bulan terakhir)
+  const months = Array.from({ length: range }, (_, i) => {
+    const d = new Date();
+    d.setDate(1);
+    d.setMonth(d.getMonth() - (range - 1 - i));
+    return {
+      key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`,
+      label: d.toLocaleDateString("id-ID", { month: "short", year: "2-digit" }),
+    };
+  });
+
+  // Semua peran unik (max 8)
+  const allPeran = Array.from(new Set(tickets.map(t => t.peran).filter(Boolean))).slice(0, 8);
+
+  // Hitung tiket per bulan per peran
+  const data: Array<Record<string, any>> = months.map(m => {
+    const row: Record<string, number> = { total: 0 };
+    allPeran.forEach(p => {
+      const count = tickets.filter(t => {
+        const mk = t.created?.slice(0, 7);
+        return mk === m.key && t.peran === p;
+      }).length;
+      row[p] = count;
+      row.total += count;
+    });
+    return { ...m, ...row };
+  });
+
+  const maxTotal = Math.max(...data.map(d => d.total), 1);
+  const H = 120;
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      {/* Controls */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+          {allPeran.map((p, i) => (
+            <div key={p} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <div style={{ width: 10, height: 10, borderRadius: "50%", background: PERAN_COLORS[i % 8], flexShrink: 0 }} />
+              <span style={{ fontSize: 12, color: "#94A3B8" }}>{p}</span>
+            </div>
+          ))}
+        </div>
+        <div style={{ display: "flex", gap: 6 }}>
+          {([6, 12] as const).map(r => (
+            <button key={r} onClick={() => setRange(r)}
+              style={{
+                padding: "5px 14px", borderRadius: 8, border: "none", cursor: "pointer", fontFamily: "'Outfit',sans-serif", fontSize: 12, fontWeight: 600,
+                background: range === r ? "rgba(56,189,248,0.15)" : "rgba(255,255,255,0.05)",
+                color: range === r ? "#38BDF8" : "#64748B",
+                outline: range === r ? "1px solid rgba(56,189,248,0.3)" : "1px solid rgba(255,255,255,0.06)"
+              }}>
+              {r} Bulan
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Stacked bar chart */}
+      <div style={{ display: "flex", alignItems: "flex-end", gap: 8, height: H + 28 }}>
+        {data.map((d, mi) => (
+          <div key={mi} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+            <span style={{ fontSize: 10, color: "#64748B", fontWeight: 600 }}>{d.total > 0 ? d.total : ""}</span>
+            {/* Stacked segments */}
+            <div style={{ width: "100%", display: "flex", flexDirection: "column-reverse", height: `${(d.total / maxTotal) * H}px`, minHeight: d.total > 0 ? 6 : 3, borderRadius: "4px 4px 0 0", overflow: "hidden", background: d.total === 0 ? "rgba(255,255,255,0.05)" : "transparent" }}>
+              {allPeran.map((p, i) => {
+                const val = d[p] as number || 0;
+                const pct = d.total > 0 ? (val / d.total) * 100 : 0;
+                return pct > 0 ? (
+                  <div key={p} title={`${p}: ${val}`}
+                    style={{ width: "100%", height: `${pct}%`, background: PERAN_COLORS[i % 8], flexShrink: 0, transition: "height 0.6s ease" }} />
+                ) : null;
+              })}
+            </div>
+            <span style={{ fontSize: 9, color: "#475569", whiteSpace: "nowrap", textAlign: "center" }}>{d.label}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Mini table */}
+      <div style={{ overflowX: "auto" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 11 }}>
+          <thead>
+            <tr style={{ background: "rgba(255,255,255,0.03)" }}>
+              <th style={{ padding: "7px 10px", textAlign: "left", color: "#475569", fontWeight: 700, fontSize: 10, textTransform: "uppercase", letterSpacing: 0.6, whiteSpace: "nowrap" }}>Peran</th>
+              {months.map(m => (
+                <th key={m.key} style={{ padding: "7px 8px", textAlign: "center", color: "#475569", fontWeight: 700, fontSize: 10, whiteSpace: "nowrap" }}>{m.label}</th>
+              ))}
+              <th style={{ padding: "7px 10px", textAlign: "center", color: "#38BDF8", fontWeight: 700, fontSize: 10 }}>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {allPeran.map((p, i) => {
+              const rowTotal = data.reduce((s, d) => s + (d[p] as number || 0), 0);
+              return (
+                <tr key={p} style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}>
+                  <td style={{ padding: "7px 10px", display: "flex", alignItems: "center", gap: 6 }}>
+                    <div style={{ width: 8, height: 8, borderRadius: "50%", background: PERAN_COLORS[i % 8], flexShrink: 0 }} />
+                    <span style={{ color: "#CBD5E1", fontWeight: 600 }}>{p}</span>
+                  </td>
+                  {data.map(d => (
+                    <td key={d.key} style={{ padding: "7px 8px", textAlign: "center", color: (d[p] as number) > 0 ? PERAN_COLORS[i % 8] : "#334155", fontWeight: (d[p] as number) > 0 ? 700 : 400 }}>{d[p] as number || 0}</td>
+                  ))}
+                  <td style={{ padding: "7px 10px", textAlign: "center", fontWeight: 800, color: PERAN_COLORS[i % 8] }}>{rowTotal}</td>
+                </tr>
+              );
+            })}
+            <tr style={{ borderTop: "2px solid rgba(255,255,255,0.08)", background: "rgba(56,189,248,0.03)" }}>
+              <td style={{ padding: "7px 10px", fontWeight: 800, color: "#38BDF8", fontSize: 11 }}>TOTAL</td>
+              {data.map(d => (
+                <td key={d.key} style={{ padding: "7px 8px", textAlign: "center", fontWeight: 800, color: "#38BDF8" }}>{d.total}</td>
+              ))}
+              <td style={{ padding: "7px 10px", textAlign: "center", fontWeight: 800, color: "#38BDF8" }}>{data.reduce((s, d) => s + d.total, 0)}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 // ─── Dashboard Statistik ──────────────────────────────────────
 function StatsDashboard({ tickets }: { tickets: any[] }) {
+  const [activeTab, setActiveTab] = useState<"overview" | "bulanan" | "tahunan">("overview");
   const statusData = [
     { label: "Menunggu", value: tickets.filter(t => t.status === "Menunggu").length, color: "#F59E0B" },
     { label: "Dalam Proses", value: tickets.filter(t => t.status === "Dalam Proses").length, color: "#3B82F6" },
@@ -166,68 +663,298 @@ function StatsDashboard({ tickets }: { tickets: any[] }) {
     ? Math.round((tickets.filter(t => t.status === "Selesai").length / tickets.length) * 100)
     : 0;
 
+  const tabStyle = (id: string): React.CSSProperties => ({
+    padding: "8px 18px", borderRadius: 10, border: "none", cursor: "pointer",
+    fontFamily: "'Outfit',sans-serif", fontSize: 13, fontWeight: 600, transition: "all 0.15s",
+    background: activeTab === id ? "rgba(56,189,248,0.15)" : "rgba(255,255,255,0.04)",
+    color: activeTab === id ? "#38BDF8" : "#64748B",
+    outline: activeTab === id ? "1px solid rgba(56,189,248,0.3)" : "1px solid rgba(255,255,255,0.06)",
+  });
+
+  // ─── Cetak Laporan ───────────────────────────────────────────
+  const handlePrint = () => {
+    const now = new Date();
+    const tglCetak = now.toLocaleDateString("id-ID", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+    const currentYear = now.getFullYear();
+
+    // Hitung data bulanan tahun ini
+    const monthlyRows = BULAN_ID.map((bln, mi) => {
+      const mo = tickets.filter(t => { const d = new Date(t.created); return d.getFullYear() === currentYear && d.getMonth() === mi; });
+      const selesai = mo.filter(t => t.status === "Selesai").length;
+      return { bln, total: mo.length, menunggu: mo.filter(t => t.status === "Menunggu").length, proses: mo.filter(t => t.status === "Dalam Proses").length, selesai, ditolak: mo.filter(t => t.status === "Ditolak").length, pct: mo.length > 0 ? Math.round((selesai / mo.length) * 100) : 0 };
+    });
+
+    // Hitung data tahunan
+    const years = Array.from(new Set(tickets.map(t => new Date(t.created).getFullYear()))).sort((a, b) => a - b);
+    if (!years.includes(currentYear)) years.push(currentYear);
+    const yearlyRows = years.map(y => {
+      const yt = tickets.filter(t => new Date(t.created).getFullYear() === y);
+      const selesai = yt.filter(t => t.status === "Selesai").length;
+      return { year: y, total: yt.length, menunggu: yt.filter(t => t.status === "Menunggu").length, proses: yt.filter(t => t.status === "Dalam Proses").length, selesai, ditolak: yt.filter(t => t.status === "Ditolak").length, pct: yt.length > 0 ? Math.round((selesai / yt.length) * 100) : 0 };
+    });
+
+    // Hitung peran
+    const peranMap: Record<string, number> = {};
+    tickets.forEach(t => { if (t.peran) peranMap[t.peran] = (peranMap[t.peran] || 0) + 1; });
+    const peranRows = Object.entries(peranMap).sort((a, b) => b[1] - a[1]);
+
+    // Hitung kategori
+    const katMap: Record<string, number> = {};
+    tickets.forEach(t => { if (t.category) katMap[t.category] = (katMap[t.category] || 0) + 1; });
+    const katRows = Object.entries(katMap).sort((a, b) => b[1] - a[1]);
+
+    const totalSelesai = tickets.filter(t => t.status === "Selesai").length;
+    const totalMenunggu = tickets.filter(t => t.status === "Menunggu").length;
+    const totalProses = tickets.filter(t => t.status === "Dalam Proses").length;
+    const totalDitolak = tickets.filter(t => t.status === "Ditolak").length;
+    const pctSelesai = tickets.length > 0 ? Math.round((totalSelesai / tickets.length) * 100) : 0;
+
+    const mkRow = (d: any) => `
+      <tr>
+        <td>${d.bln || d.year}</td>
+        <td style="text-align:center;font-weight:700;color:#1d4ed8">${d.total}</td>
+        <td style="text-align:center;color:#92400e">${d.menunggu}</td>
+        <td style="text-align:center;color:#1e40af">${d.proses}</td>
+        <td style="text-align:center;color:#065f46">${d.selesai}</td>
+        <td style="text-align:center;color:#991b1b">${d.ditolak}</td>
+        <td style="text-align:center">
+          <div style="display:flex;align-items:center;gap:6px">
+            <div style="flex:1;height:6px;border-radius:3px;background:#e5e7eb;overflow:hidden;min-width:50px">
+              <div style="height:100%;width:${d.pct}%;background:#10b981;border-radius:3px"></div>
+            </div>
+            <span style="font-size:11px;font-weight:700;color:#065f46">${d.pct}%</span>
+          </div>
+        </td>
+      </tr>`;
+
+    const html = `<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Laporan HelpDesk — ${tglCetak}</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; color: #1e293b; background: #fff; font-size: 13px; }
+  .page { max-width: 960px; margin: 0 auto; padding: 32px 40px; }
+  .header { display: flex; align-items: flex-start; justify-content: space-between; border-bottom: 3px solid #1d4ed8; padding-bottom: 20px; margin-bottom: 28px; }
+  .header-left h1 { font-size: 22px; font-weight: 800; color: #1e3a8a; margin-bottom: 4px; }
+  .header-left p { font-size: 12px; color: #64748b; }
+  .header-right { text-align: right; font-size: 12px; color: #64748b; }
+  .section { margin-bottom: 32px; }
+  .section-title { font-size: 14px; font-weight: 800; color: #1e3a8a; border-left: 4px solid #1d4ed8; padding-left: 10px; margin-bottom: 14px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .stat-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 24px; }
+  .stat-card { border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px 16px; text-align: center; }
+  .stat-card .val { font-size: 28px; font-weight: 800; }
+  .stat-card .lbl { font-size: 11px; color: #64748b; margin-top: 4px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  thead tr { background: #f1f5f9; }
+  th { padding: 9px 10px; text-align: left; font-weight: 700; color: #475569; text-transform: uppercase; font-size: 10px; letter-spacing: 0.6px; border-bottom: 2px solid #e2e8f0; }
+  td { padding: 9px 10px; border-bottom: 1px solid #f1f5f9; }
+  tr:last-child td { border-bottom: none; }
+  .total-row td { background: #eff6ff; font-weight: 800; color: #1d4ed8; border-top: 2px solid #bfdbfe; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid #e2e8f0; font-size: 11px; color: #94a3b8; text-align: center; }
+  @media print {
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .page { padding: 20px; }
+    .no-break { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="header">
+    <div class="header-left">
+      <h1>Laporan Helpdesk</h1>
+      <p>Unit Layanan Terpadu — Kemendikdasmen</p>
+    </div>
+    <div class="header-right">
+      <div style="font-weight:700;font-size:13px;color:#1e293b">Tanggal Cetak</div>
+      <div>${tglCetak}</div>
+      <div style="margin-top:6px">Total Tiket: <strong style="color:#1d4ed8">${tickets.length}</strong></div>
+    </div>
+  </div>
+
+  <!-- STATISTIK UTAMA -->
+  <div class="section no-break">
+    <div class="section-title">Statistik Utama</div>
+    <div class="stat-grid">
+      <div class="stat-card"><div class="val" style="color:#1d4ed8">${tickets.length}</div><div class="lbl">Total Tiket</div></div>
+      <div class="stat-card"><div class="val" style="color:#d97706">${totalMenunggu}</div><div class="lbl">Menunggu</div></div>
+      <div class="stat-card"><div class="val" style="color:#2563eb">${totalProses}</div><div class="lbl">Dalam Proses</div></div>
+      <div class="stat-card"><div class="val" style="color:#059669">${totalSelesai}</div><div class="lbl">Selesai</div></div>
+      <div class="stat-card"><div class="val" style="color:#7c3aed">${pctSelesai}%</div><div class="lbl">Tingkat Selesai</div></div>
+    </div>
+  </div>
+
+  <!-- REKAP BULANAN -->
+  <div class="section no-break">
+    <div class="section-title">Rekap Bulanan — Tahun ${currentYear}</div>
+    <table>
+      <thead><tr><th>Bulan</th><th style="text-align:center">Total</th><th style="text-align:center">Menunggu</th><th style="text-align:center">Dalam Proses</th><th style="text-align:center">Selesai</th><th style="text-align:center">Ditolak</th><th style="text-align:center">Tingkat Selesai</th></tr></thead>
+      <tbody>
+        ${monthlyRows.map(mkRow).join('')}
+        <tr class="total-row">
+          <td>TOTAL</td>
+          <td style="text-align:center">${monthlyRows.reduce((s, d) => s + d.total, 0)}</td>
+          <td style="text-align:center">${monthlyRows.reduce((s, d) => s + d.menunggu, 0)}</td>
+          <td style="text-align:center">${monthlyRows.reduce((s, d) => s + d.proses, 0)}</td>
+          <td style="text-align:center">${monthlyRows.reduce((s, d) => s + d.selesai, 0)}</td>
+          <td style="text-align:center">${monthlyRows.reduce((s, d) => s + d.ditolak, 0)}</td>
+          <td style="text-align:center">${pctSelesai}%</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- REKAP TAHUNAN -->
+  <div class="section no-break">
+    <div class="section-title">Rekap Tahunan</div>
+    <table>
+      <thead><tr><th>Tahun</th><th style="text-align:center">Total</th><th style="text-align:center">Menunggu</th><th style="text-align:center">Dalam Proses</th><th style="text-align:center">Selesai</th><th style="text-align:center">Ditolak</th><th style="text-align:center">Tingkat Selesai</th></tr></thead>
+      <tbody>
+        ${yearlyRows.map(mkRow).join('')}
+        <tr class="total-row">
+          <td>TOTAL</td>
+          <td style="text-align:center">${yearlyRows.reduce((s, d) => s + d.total, 0)}</td>
+          <td style="text-align:center">${yearlyRows.reduce((s, d) => s + d.menunggu, 0)}</td>
+          <td style="text-align:center">${yearlyRows.reduce((s, d) => s + d.proses, 0)}</td>
+          <td style="text-align:center">${yearlyRows.reduce((s, d) => s + d.selesai, 0)}</td>
+          <td style="text-align:center">${yearlyRows.reduce((s, d) => s + d.ditolak, 0)}</td>
+          <td style="text-align:center">${tickets.length > 0 ? Math.round((totalSelesai / tickets.length) * 100) : 0}%</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- PERAN & KATEGORI -->
+  <div class="section two-col no-break">
+    <div>
+      <div class="section-title">Peran Pengirim</div>
+      <table>
+        <thead><tr><th>Peran</th><th style="text-align:center">Jumlah</th><th style="text-align:center">%</th></tr></thead>
+        <tbody>
+          ${peranRows.map(([p, v]) => `<tr><td>${p}</td><td style="text-align:center;font-weight:700">${v}</td><td style="text-align:center;color:#64748b">${tickets.length > 0 ? Math.round((v / tickets.length) * 100) : 0}%</td></tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <div class="section-title">Kategori Laporan</div>
+      <table>
+        <thead><tr><th>Kategori</th><th style="text-align:center">Jumlah</th><th style="text-align:center">%</th></tr></thead>
+        <tbody>
+          ${katRows.map(([k, v]) => `<tr><td>${k}</td><td style="text-align:center;font-weight:700">${v}</td><td style="text-align:center;color:#64748b">${tickets.length > 0 ? Math.round((v / tickets.length) * 100) : 0}%</td></tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="footer">Dicetak dari Sistem HelpDesk — ${tglCetak} &nbsp;|&nbsp; Dokumen ini dibuat secara otomatis</div>
+</div>
+<script>window.onload = function(){ window.print(); }<\/script>
+</body>
+</html>`;
+
+    const w = window.open("", "_blank", "width=1000,height=700");
+    if (w) { w.document.write(html); w.document.close(); }
+  };
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
 
-      {/* STAT CARDS */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 14 }}>
-        {[
-          { label: "Total Tiket", value: tickets.length, color: "#3B82F6", icon: "📋" },
-          { label: "Menunggu", value: tickets.filter(t => t.status === "Menunggu").length, color: "#F59E0B", icon: "⏳" },
-          { label: "Dalam Proses", value: tickets.filter(t => t.status === "Dalam Proses").length, color: "#0EA5E9", icon: "🔄" },
-          { label: "Selesai", value: tickets.filter(t => t.status === "Selesai").length, color: "#10B981", icon: "✅" },
-          { label: "Tingkat Selesai", value: `${selesaiPct}%`, color: "#8B5CF6", icon: "📊" },
-        ].map(s => (
-          <div key={s.label} style={{ ...cardStyle, position: "relative", overflow: "hidden" }}>
-            <div style={{ position: "absolute", top: -16, right: -16, width: 64, height: 64, borderRadius: "50%", background: s.color, opacity: 0.1 }} />
-            <div style={{ fontSize: 22, marginBottom: 6 }}>{s.icon}</div>
-            <div style={{ fontSize: 28, fontWeight: 800, color: s.color }}>{s.value}</div>
-            <div style={{ fontSize: 12, color: "#64748B", marginTop: 2 }}>{s.label}</div>
+      {/* TAB SWITCHER + CETAK */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <button style={tabStyle("overview")} onClick={() => setActiveTab("overview")}>📊 Overview</button>
+          <button style={tabStyle("bulanan")} onClick={() => setActiveTab("bulanan")}>📅 Rekap Bulanan</button>
+          <button style={tabStyle("tahunan")} onClick={() => setActiveTab("tahunan")}>📆 Rekap Tahunan</button>
+        </div>
+        <button onClick={handlePrint} style={{ display: "flex", alignItems: "center", gap: 7, padding: "8px 18px", borderRadius: 10, border: "none", cursor: "pointer", fontFamily: "'Outfit',sans-serif", fontSize: 13, fontWeight: 700, background: "linear-gradient(135deg,#3B82F6,#06B6D4)", color: "#fff", boxShadow: "0 4px 12px rgba(59,130,246,0.3)" }}>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 6 2 18 2 18 9" /><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2" /><rect x="6" y="14" width="12" height="8" /></svg>
+          Cetak Laporan
+        </button>
+      </div>
+
+      {/* OVERVIEW TAB */}
+      {activeTab === "overview" && <>
+
+        {/* STAT CARDS */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 14 }}>
+          {[
+            { label: "Total Tiket", value: tickets.length, color: "#3B82F6", icon: "📋" },
+            { label: "Menunggu", value: tickets.filter(t => t.status === "Menunggu").length, color: "#F59E0B", icon: "⏳" },
+            { label: "Dalam Proses", value: tickets.filter(t => t.status === "Dalam Proses").length, color: "#0EA5E9", icon: "🔄" },
+            { label: "Selesai", value: tickets.filter(t => t.status === "Selesai").length, color: "#10B981", icon: "✅" },
+            { label: "Tingkat Selesai", value: `${selesaiPct}%`, color: "#8B5CF6", icon: "📊" },
+          ].map(s => (
+            <div key={s.label} style={{ ...cardStyle, position: "relative", overflow: "hidden" }}>
+              <div style={{ position: "absolute", top: -16, right: -16, width: 64, height: 64, borderRadius: "50%", background: s.color, opacity: 0.1 }} />
+              <div style={{ fontSize: 22, marginBottom: 6 }}>{s.icon}</div>
+              <div style={{ fontSize: 28, fontWeight: 800, color: s.color }}>{s.value}</div>
+              <div style={{ fontSize: 12, color: "#64748B", marginTop: 2 }}>{s.label}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* CHARTS ROW 1 */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
+          {/* Donut Status */}
+          <div style={cardStyle}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "#E2E8F0", marginBottom: 16 }}>📊 Status Tiket</div>
+            <DonutChart data={statusData} />
           </div>
-        ))}
-      </div>
 
-      {/* CHARTS ROW 1 */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
-        {/* Donut Status */}
-        <div style={cardStyle}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: "#E2E8F0", marginBottom: 16 }}>📊 Status Tiket</div>
-          <DonutChart data={statusData} />
+          {/* Trend 7 Hari */}
+          <div style={cardStyle}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "#E2E8F0", marginBottom: 16 }}>📈 Tiket 7 Hari Terakhir</div>
+            <TrendChart tickets={tickets} />
+          </div>
         </div>
 
-        {/* Trend 7 Hari */}
-        <div style={cardStyle}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: "#E2E8F0", marginBottom: 16 }}>📈 Tiket 7 Hari Terakhir</div>
-          <TrendChart tickets={tickets} />
-        </div>
-      </div>
+        {/* CHARTS ROW 2 */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
+          {/* Kategori */}
+          <div style={cardStyle}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "#E2E8F0", marginBottom: 16 }}>🗂️ Kategori Laporan</div>
+            {kategoriData.length > 0
+              ? <BarChart data={kategoriData} />
+              : <div style={{ color: "#475569", fontSize: 13 }}>Belum ada data</div>}
+          </div>
 
-      {/* CHARTS ROW 2 */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
-        {/* Kategori */}
-        <div style={cardStyle}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: "#E2E8F0", marginBottom: 16 }}>🗂️ Kategori Laporan</div>
-          {kategoriData.length > 0
-            ? <BarChart data={kategoriData} />
+          {/* Jenis Laporan */}
+          <div style={cardStyle}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "#E2E8F0", marginBottom: 16 }}>📝 Jenis Laporan</div>
+            {jenisData.length > 0
+              ? <BarChart data={jenisData} />
+              : <div style={{ color: "#475569", fontSize: 13 }}>Belum ada data</div>}
+          </div>
+
+          {/* Peran Pelapor */}
+          <div style={cardStyle}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "#E2E8F0", marginBottom: 16 }}>👥 Peran Pelapor</div>
+            {peranData.length > 0
+              ? <BarChart data={peranData} />
+              : <div style={{ color: "#475569", fontSize: 13 }}>Belum ada data</div>}
+          </div>
+        </div>
+
+        {/* TREN PERAN PENGIRIM */}
+        <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, padding: "20px 24px" }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: "#E2E8F0", marginBottom: 16 }}>👥 Tren Peran Pengirim Tiket</div>
+          {tickets.length > 0
+            ? <PeranTrendChart tickets={tickets} />
             : <div style={{ color: "#475569", fontSize: 13 }}>Belum ada data</div>}
         </div>
 
-        {/* Jenis Laporan */}
-        <div style={cardStyle}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: "#E2E8F0", marginBottom: 16 }}>📝 Jenis Laporan</div>
-          {jenisData.length > 0
-            ? <BarChart data={jenisData} />
-            : <div style={{ color: "#475569", fontSize: 13 }}>Belum ada data</div>}
-        </div>
+      </> /* end overview */}
 
-        {/* Peran Pelapor */}
-        <div style={cardStyle}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: "#E2E8F0", marginBottom: 16 }}>👥 Peran Pelapor</div>
-          {peranData.length > 0
-            ? <BarChart data={peranData} />
-            : <div style={{ color: "#475569", fontSize: 13 }}>Belum ada data</div>}
-        </div>
-      </div>
+      {/* MONTHLY RECAP TAB */}
+      {activeTab === "bulanan" && <MonthlyRecap tickets={tickets} />}
+
+      {/* YEARLY RECAP TAB */}
+      {activeTab === "tahunan" && <YearlyRecap tickets={tickets} />}
+
     </div>
   );
 }
@@ -558,7 +1285,7 @@ function Dashboard({ token, nama, role, onLogout }: { token: string; nama: strin
     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
       {/* Logo */}
       <div style={{ marginBottom: 20, padding: "0 4px" }}>
-        <img src="/logo_b.png" alt="Kemendikdasmen - Unit Layanan Terpadu"
+        <img src="/logo_b3.png" alt="Kemendikdasmen - Unit Layanan Terpadu"
           style={{ width: "100%", maxHeight: 44, objectFit: "contain", objectPosition: "left" }} />
       </div>
       {/* Info Admin */}
