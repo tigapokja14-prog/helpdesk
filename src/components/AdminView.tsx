@@ -978,7 +978,7 @@ function ManajemenAdmin({ token, role }: { token: string; role: string }) {
   const fetchAdmins = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/auth/admins", { headers });
+      const res = await fetch("/api/auth/admin", { headers });
       const data = await res.json();
       if (res.ok) setAdmins(data);
     } finally { setLoading(false); }
@@ -990,7 +990,7 @@ function ManajemenAdmin({ token, role }: { token: string; role: string }) {
     setFormErr("");
     if (!form.username || !form.password || !form.nama) { setFormErr("Semua field wajib diisi."); return; }
     if (form.password.length < 6) { setFormErr("Password minimal 6 karakter."); return; }
-    const res = await fetch("/api/auth/admins", { method: "POST", headers, body: JSON.stringify(form) });
+    const res = await fetch("/api/auth/admin", { method: "POST", headers, body: JSON.stringify(form) });
     const data = await res.json();
     if (res.ok) {
       showToast("Admin berhasil ditambahkan");
@@ -1002,7 +1002,7 @@ function ManajemenAdmin({ token, role }: { token: string; role: string }) {
 
   const handleHapus = async (username: string) => {
     if (!confirm(`Hapus admin "${username}"?`)) return;
-    const res = await fetch("/api/auth/admins", { method: "DELETE", headers, body: JSON.stringify({ username }) });
+    const res = await fetch("/api/auth/admin", { method: "DELETE", headers, body: JSON.stringify({ username }) });
     const data = await res.json();
     if (res.ok) { showToast(`Admin "${username}" dihapus`); fetchAdmins(); }
     else showToast(data.error || "Gagal menghapus", "error");
