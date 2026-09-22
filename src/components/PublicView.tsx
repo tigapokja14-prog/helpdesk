@@ -205,8 +205,8 @@ export default function PublicView() {
             🏛️ UNIT LAYANAN TERPADU — BPMP JAKARTA
           </div>
           <h1 style={{ fontSize: "clamp(28px, 4vw, 32px)", fontWeight: 800, lineHeight: 1.2, marginBottom: 16 }}>
-            Layanan Permohonan Informasi, Keberatan, &
-            <span style={{ color: "#FFB300" }}> Pengaduan</span>
+            Layanan Permohonan Informasi,
+            <span style={{ color: "#FFB300" }}> Keberatan, dan Pengaduan</span>
           </h1>
           <p style={{ fontSize: 14, color: "rgba(255,255,255,0.85)", lineHeight: 1.2, marginBottom: 16 }}>
             Sampaikan pertanyaan, permintaan, keluhan, atau aspirasi Anda kepada Kami. Tim kami siap membantu.
